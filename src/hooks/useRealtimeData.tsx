@@ -107,7 +107,7 @@ export const useRealtimeData = () => {
           ...prevData.systemStatus,
           packagesProcessed: prevData.systemStatus.packagesProcessed + Math.floor(Math.random() * 3),
         },
-        robots: prevData.robots.map(robot => {
+        robots: prevData.robots.map((robot) => {
           let newBatteryLevel;
           if (robot.status === 'active') {
             // Active robots lose battery (0.1 to 2% per update)
