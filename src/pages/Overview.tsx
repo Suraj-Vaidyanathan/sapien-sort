@@ -10,6 +10,40 @@ import BatteryStatusCard from '@/components/BatteryStatusCard';
 import PackageTable from '@/components/PackageTable';
 import BinGrid from '@/components/BinGrid';
 
+// Helper types for adapting to component expectations
+type SwitchCardType = {
+  id: string;
+  status: boolean;
+  side: 'left' | 'right';
+};
+
+type SwitchesForRows = {
+  [rowIndex: number]: { entry: SwitchCardType[]; exit: SwitchCardType[] };
+};
+
+type PackageInfo = {
+  id: string;
+  uid: string;
+  botAssigned: string | null;
+  destination: string | null;
+  status: 'completed' | 'pending' | 'processing';
+  timestamp: string;
+};
+
+const statusMap = (status: string): 'completed' | 'processing' | 'pending' => {
+  switch (status) {
+    case 'completed':
+      return 'completed';
+    case 'processing':
+      return 'processing';
+    case 'pending':
+      return 'pending';
+    default:
+      // Fallback to 'pending' for unknown status value
+      return 'pending';
+  }
+};
+
 const Overview = () => {
   const {
     systemStatus,
@@ -24,6 +58,29 @@ const Overview = () => {
     infeedOverview,
     totalRows,
   } = useRealtimeData();
+
+  // Map switches into the props expected by SwitchStatusCard
+  const switchStatusCardData: SwitchesForRows = {};
+  Object.entries(switches).forEach(([rowKey, sw]) => {
+    switchStatusCardData[Number(rowKey)] = {
+      entry: sw.entry.map((s) => ({
+        id: s.id,
+        status: s.state,
+        side: s.side,
+      })),
+      exit: sw.exit.map((s) => ({
+        id: s.id,
+        status: s.state,
+        side: s.side,
+      })),
+    };
+  });
+
+  // Map packages to have compatible status type for PackageTable
+  const packageTableData: PackageInfo[] = packages.map((pkg) => ({
+    ...pkg,
+    status: statusMap(pkg.status),
+  }));
 
   // Use human-readable/DB-provided metrics everywhere
   const systemOverview = {
@@ -61,12 +118,12 @@ const Overview = () => {
         {/* Robot Visualization and Switch Status */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
           <RobotVisualization robots={robots} totalRows={totalRows} />
-          <SwitchStatusCard totalRows={totalRows} switches={switches} />
+          <SwitchStatusCard totalRows={totalRows} switches={switchStatusCardData} />
         </div>
 
         {/* Package Table */}
         <div className="mb-6">
-          <PackageTable packages={packages} />
+          <PackageTable packages={packageTableData} />
         </div>
 
         {/* Bin Grid */}
@@ -77,4 +134,5 @@ const Overview = () => {
     </div>
   );
 };
+
 export default Overview;
