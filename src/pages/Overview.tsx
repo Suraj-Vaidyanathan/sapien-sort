@@ -22,9 +22,11 @@ const Overview = () => {
 
   const TOTAL_ROWS = 5;
 
-  // Fake static values to simulate the mockup image
+  // Dynamically compute botActive based on real data
+  const activeBotCount = robots.filter(r => r.status === 'active').length;
+  const totalBotCount = robots.length;
   const systemOverview = {
-    botActive: '11/11',
+    botActive: `${activeBotCount}/${totalBotCount}`,
     cvRunning: '4/4',
     networkStatus: 'Online',
     wcsStatus: 'Healthy',
@@ -84,3 +86,4 @@ const Overview = () => {
   );
 };
 export default Overview;
+
