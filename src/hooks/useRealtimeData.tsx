@@ -107,11 +107,28 @@ export const useRealtimeData = () => {
           ...prevData.systemStatus,
           packagesProcessed: prevData.systemStatus.packagesProcessed + Math.floor(Math.random() * 3),
         },
-        robots: prevData.robots.map(robot => ({
-          ...robot,
-          batteryLevel: Math.max(0, robot.batteryLevel - (robot.status === 'active' ? Math.random() * 0.5 : -Math.random() * 2)),
-          currentRow: robot.status === 'active' ? Math.floor(Math.random() * 5) : robot.currentRow,
-        })),
+        robots: prevData.robots.map(robot => {
+          let newBatteryLevel;
+          if (robot.status === 'active') {
+            // Active robots lose battery (0.1 to 2% per update)
+            newBatteryLevel = robot.batteryLevel - (Math.random() * 1.9 + 0.1);
+          } else if (robot.status === 'charging') {
+            // Charging robots gain battery (0.5 to 3% per update)
+            newBatteryLevel = robot.batteryLevel + (Math.random() * 2.5 + 0.5);
+          } else {
+            // Idle robots lose battery slowly (0.05 to 0.5% per update)
+            newBatteryLevel = robot.batteryLevel - (Math.random() * 0.45 + 0.05);
+          }
+          
+          // Ensure battery level stays between 0 and 100, and round to integer
+          const clampedBatteryLevel = Math.round(Math.max(0, Math.min(100, newBatteryLevel)));
+          
+          return {
+            ...robot,
+            batteryLevel: clampedBatteryLevel,
+            currentRow: robot.status === 'active' ? Math.floor(Math.random() * 5) : robot.currentRow,
+          };
+        }),
         bins: prevData.bins.map(bin => ({
           ...bin,
           currentCount: bin.status === 'maintenance' ? bin.currentCount : 
