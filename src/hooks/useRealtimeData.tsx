@@ -1,8 +1,18 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from "react";
+
+// Add explicit Robot interface so TypeScript understands array elements
+interface Robot {
+  id: string;
+  name: string;
+  currentRow: number;
+  status: 'active' | 'idle' | 'charging' | 'error';
+  batteryLevel: number;
+}
 
 // Simulated real-time data hook
 export const useRealtimeData = () => {
-  const [data, setData] = React.useState({
+  const [data, setData] = useState({
     systemStatus: {
       status: 'online' as 'online' | 'warning' | 'offline',
       packagesProcessed: 1247,
@@ -21,7 +31,7 @@ export const useRealtimeData = () => {
       { id: '2', name: 'RB-02', currentRow: 2, status: 'active' as const, batteryLevel: 67 },
       { id: '3', name: 'RB-03', currentRow: 4, status: 'charging' as const, batteryLevel: 95 },
       { id: '4', name: 'RB-04', currentRow: 2, status: 'active' as const, batteryLevel: 23 },
-    ],
+    ] as Robot[],
     switches: {
       0: {
         entry: [
@@ -98,7 +108,7 @@ export const useRealtimeData = () => {
   });
 
   // Simulate real-time updates
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setData(prevData => ({
         ...prevData,
@@ -106,7 +116,7 @@ export const useRealtimeData = () => {
           ...prevData.systemStatus,
           packagesProcessed: prevData.systemStatus.packagesProcessed + Math.floor(Math.random() * 3),
         },
-        robots: prevData.robots.map((robot: typeof prevData.robots[number]) => {
+        robots: (prevData.robots as Robot[]).map((robot) => {
           let newBatteryLevel = robot.batteryLevel;
           let newStatus = robot.status;
 
@@ -131,13 +141,16 @@ export const useRealtimeData = () => {
             ...robot,
             batteryLevel: clampedBatteryLevel,
             status: newStatus,
-            currentRow: newStatus === 'active' ? Math.floor(Math.random() * 5) : 
-                       newStatus === 'charging' ? 4 : robot.currentRow,
+            currentRow: newStatus === 'active'
+              ? Math.floor(Math.random() * 5)
+              : newStatus === 'charging'
+              ? 4
+              : robot.currentRow,
           };
         }),
         bins: prevData.bins.map(bin => ({
           ...bin,
-          currentCount: bin.status === 'maintenance' ? bin.currentCount : 
+          currentCount: bin.status === 'maintenance' ? bin.currentCount :
             Math.min(bin.capacity, bin.currentCount + (Math.random() > 0.7 ? 1 : 0)),
         })),
       }));
