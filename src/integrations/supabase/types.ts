@@ -9,7 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bins: {
+        Row: {
+          capacity: number
+          current_count: number
+          id: string
+          location: string
+          status: string
+        }
+        Insert: {
+          capacity: number
+          current_count: number
+          id?: string
+          location: string
+          status: string
+        }
+        Update: {
+          capacity?: number
+          current_count?: number
+          id?: string
+          location?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      chutes: {
+        Row: {
+          cv_status: string
+          id: number
+          label: string
+          speed: number
+        }
+        Insert: {
+          cv_status: string
+          id?: number
+          label: string
+          speed: number
+        }
+        Update: {
+          cv_status?: string
+          id?: number
+          label?: string
+          speed?: number
+        }
+        Relationships: []
+      }
+      cv_systems: {
+        Row: {
+          id: number
+          speed: number
+          status: string
+          system_type: string
+        }
+        Insert: {
+          id?: number
+          speed: number
+          status: string
+          system_type: string
+        }
+        Update: {
+          id?: number
+          speed?: number
+          status?: string
+          system_type?: string
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          bot_assigned: string | null
+          destination: string | null
+          id: string
+          status: string
+          timestamp: string
+          uid: string
+        }
+        Insert: {
+          bot_assigned?: string | null
+          destination?: string | null
+          id?: string
+          status: string
+          timestamp?: string
+          uid: string
+        }
+        Update: {
+          bot_assigned?: string | null
+          destination?: string | null
+          id?: string
+          status?: string
+          timestamp?: string
+          uid?: string
+        }
+        Relationships: []
+      }
+      robots: {
+        Row: {
+          battery_level: number
+          current_row: number
+          id: string
+          name: string
+          status: string
+        }
+        Insert: {
+          battery_level: number
+          current_row: number
+          id?: string
+          name: string
+          status: string
+        }
+        Update: {
+          battery_level?: number
+          current_row?: number
+          id?: string
+          name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      switches: {
+        Row: {
+          chute_id: number
+          id: string
+          side: string
+          state: boolean
+        }
+        Insert: {
+          chute_id: number
+          id?: string
+          side: string
+          state: boolean
+        }
+        Update: {
+          chute_id?: number
+          id?: string
+          side?: string
+          state?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "switches_chute_id_fkey"
+            columns: ["chute_id"]
+            isOneToOne: false
+            referencedRelation: "chutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

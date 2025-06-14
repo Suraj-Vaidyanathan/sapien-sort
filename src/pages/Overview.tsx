@@ -18,30 +18,22 @@ const Overview = () => {
     switches,
     packages,
     bins,
+    chutes,
+    botActive,
+    cvRunning,
+    infeedOverview,
+    totalRows,
   } = useRealtimeData();
 
-  const TOTAL_ROWS = 5;
-
-  // Dynamically compute botActive based on real data
-  const activeBotCount = robots.filter(r => r.status === 'active').length;
-  const totalBotCount = robots.length;
+  // Use human-readable/DB-provided metrics everywhere
   const systemOverview = {
-    botActive: `${activeBotCount}/${totalBotCount}`,
-    cvRunning: '4/4',
+    botActive: botActive,
+    cvRunning: cvRunning,
     networkStatus: 'Online',
     wcsStatus: 'Healthy',
     wmsStatus: 'Healthy',
     plcStatus: 'Healthy',
     warnings: 'Healthy',
-  };
-
-  const infeedOverview = {
-    cvStatus: 'Healthy',
-    cvSpeed: '0.8 m/s',
-    camStatus: 'Healthy',
-    profilerStatus: 'Healthy',
-    mergerCvStatus: 'Healthy',
-    mergerSpeed: '1 m/s',
   };
 
   return (
@@ -54,7 +46,7 @@ const Overview = () => {
           </p>
         </div>
 
-        {/* Overview Row - mimics layout in image (System and Infeed Overview) */}
+        {/* Overview Row - System and Infeed Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
@@ -68,8 +60,8 @@ const Overview = () => {
 
         {/* Robot Visualization and Switch Status */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-          <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
-          <SwitchStatusCard totalRows={TOTAL_ROWS} switches={switches} />
+          <RobotVisualization robots={robots} totalRows={totalRows} />
+          <SwitchStatusCard totalRows={totalRows} switches={switches} />
         </div>
 
         {/* Package Table */}
@@ -86,4 +78,3 @@ const Overview = () => {
   );
 };
 export default Overview;
-
