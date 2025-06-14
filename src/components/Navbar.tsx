@@ -6,8 +6,10 @@ import { Home, LayoutDashboard, Package, Settings } from 'lucide-react';
 const Navbar = () => {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Overview', path: '/overview', icon: LayoutDashboard },
-    { name: 'Packages', path: '/packages', icon: Package },
+    { name: 'Live Page', path: '/live', icon: LayoutDashboard },
+    { name: 'System Health', path: '/system-health', icon: LayoutDashboard },
+    { name: 'Manual Control', path: '/manual-control', icon: LayoutDashboard },
+    { name: 'Logs & Reports', path: '/logs-reports', icon: LayoutDashboard },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
@@ -15,15 +17,15 @@ const Navbar = () => {
     <nav className="bg-slate-900 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5" />
-              </div>
-              <span className="text-xl font-bold">RoboSort</span>
+          {/* App brand */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Package className="w-5 h-5" />
             </div>
+            <span className="text-xl font-bold">RoboSort</span>
           </div>
           
+          {/* Navigation */}
           <div className="flex space-x-1">
             {navItems.map((item) => (
               <NavLink

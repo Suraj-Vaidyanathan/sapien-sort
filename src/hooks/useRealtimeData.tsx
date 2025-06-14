@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 
 // Simulated real-time data hook
 export const useRealtimeData = () => {
-  const [data, setData] = useState({
+  const [data, setData] = React.useState({
     systemStatus: {
       status: 'online' as 'online' | 'warning' | 'offline',
       packagesProcessed: 1247,
@@ -99,7 +98,7 @@ export const useRealtimeData = () => {
   });
 
   // Simulate real-time updates
-  useEffect(() => {
+  React.useEffect(() => {
     const interval = setInterval(() => {
       setData(prevData => ({
         ...prevData,
@@ -107,33 +106,27 @@ export const useRealtimeData = () => {
           ...prevData.systemStatus,
           packagesProcessed: prevData.systemStatus.packagesProcessed + Math.floor(Math.random() * 3),
         },
-        robots: prevData.robots.map((robot: typeof prevData.robots[0]) => {
+        robots: prevData.robots.map((robot: typeof prevData.robots[number]) => {
           let newBatteryLevel = robot.batteryLevel;
           let newStatus = robot.status;
-          
+
           if (robot.status === 'active') {
-            // Active robots lose battery (0.1 to 2% per update)
             newBatteryLevel = robot.batteryLevel - (Math.random() * 1.9 + 0.1);
-            // If battery gets too low, go to charging
             if (newBatteryLevel <= 15) {
               newStatus = 'charging';
             }
           } else if (robot.status === 'charging') {
-            // Charging robots gain battery (0.5 to 3% per update)
             newBatteryLevel = robot.batteryLevel + (Math.random() * 2.5 + 0.5);
-            // If battery reaches 100%, exit charging and become active
             if (newBatteryLevel >= 100) {
               newBatteryLevel = 100;
-              newStatus = 'active';
+              newStatus = 'active'; // exit charging if at 100%
             }
           } else {
-            // Idle robots lose battery slowly (0.05 to 0.5% per update)
             newBatteryLevel = robot.batteryLevel - (Math.random() * 0.45 + 0.05);
           }
-          
-          // Ensure battery level stays between 0 and 100, and round to integer
+
           const clampedBatteryLevel = Math.round(Math.max(0, Math.min(100, newBatteryLevel)));
-          
+
           return {
             ...robot,
             batteryLevel: clampedBatteryLevel,
