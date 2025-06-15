@@ -30,9 +30,9 @@ const SwitchStatusCard: React.FC<SwitchStatusCardProps> = ({ totalRows, switches
   );
 
   return (
-    <Card className="p-1.5 h-full">
+    <Card className="p-1.5">
       <h3 className="text-xs font-semibold text-gray-800 mb-1">Gate Switch Status</h3>
-      <div className="space-y-0.5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 24px)' }}>
+      <div className="space-y-0.5">
         {Array.from({ length: totalRows }, (_, rowIndex) => {
           const rowSwitches = switches[rowIndex] || { entry: [], exit: [] };
           const entryStatus = rowSwitches.entry.length > 0 ? rowSwitches.entry[0].status : false;

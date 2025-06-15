@@ -95,7 +95,7 @@ const Overview = () => {
         </div>
 
         {/* Middle row - Robot Visualization and Switch Status */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-1 mb-1 h-48">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-1 mb-1">
           <div className="xl:col-span-2">
             <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
           </div>
