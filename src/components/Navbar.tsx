@@ -17,13 +17,13 @@ const Navbar = () => {
   return (
     <nav className="bg-slate-900 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-12">
           {/* App brand */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5" />
+            <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Package className="w-4 h-4" />
             </div>
-            <span className="text-xl font-bold">RoboSort</span>
+            <span className="text-lg font-bold">RoboSort</span>
           </div>
           
           {/* Navigation */}
@@ -33,15 +33,15 @@ const Navbar = () => {
                 key={item.name}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                  `flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${
                     isActive
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-300 hover:text-white hover:bg-slate-800'
                   }`
                 }
               >
-                <item.icon className="w-4 h-4" />
-                <span>{item.name}</span>
+                <item.icon className="w-3.5 h-3.5" />
+                <span className="text-sm">{item.name}</span>
               </NavLink>
             ))}
           </div>

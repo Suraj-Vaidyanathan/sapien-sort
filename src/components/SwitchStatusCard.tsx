@@ -22,7 +22,7 @@ const SwitchStatusCard: React.FC<SwitchStatusCardProps> = ({ totalRows, switches
 
   const SwitchIcon: React.FC<{ status: boolean; side: 'left' | 'right' }> = ({ status, side }) => (
     <div className={`flex items-center space-x-0.5 px-1 py-0.5 rounded ${status ? 'bg-green-100' : 'bg-red-100'}`}>
-      <span className={`w-1 h-1 inline-block rounded-full ${status ? 'bg-green-500' : 'bg-red-500'}`} />
+      <span className={`w-0.5 h-0.5 inline-block rounded-full ${status ? 'bg-green-500' : 'bg-red-500'}`} />
       <span className={`text-xs font-medium ${status ? 'text-green-700' : 'text-red-700'}`}>
         {side === 'left' ? 'L' : 'R'}
       </span>
@@ -30,20 +30,20 @@ const SwitchStatusCard: React.FC<SwitchStatusCardProps> = ({ totalRows, switches
   );
 
   return (
-    <Card className="p-2">
+    <Card className="p-1.5 h-full">
       <h3 className="text-xs font-semibold text-gray-800 mb-1">Gate Switch Status</h3>
-      <div className="space-y-1">
+      <div className="space-y-0.5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 24px)' }}>
         {Array.from({ length: totalRows }, (_, rowIndex) => {
           const rowSwitches = switches[rowIndex] || { entry: [], exit: [] };
           const entryStatus = rowSwitches.entry.length > 0 ? rowSwitches.entry[0].status : false;
           const exitStatus = !entryStatus;
 
           return (
-            <div key={rowIndex} className="flex items-center justify-between p-1 bg-gray-50 rounded">
+            <div key={rowIndex} className="flex items-center justify-between px-1 py-0.5 bg-gray-50 rounded">
               <div className="w-8 text-xs font-medium text-gray-700">
                 {getRowLabel(rowIndex)}
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <div className="flex flex-col items-center">
                   <span className="text-xs text-gray-600 mb-0.5">Entry</span>
                   <div className="flex space-x-0.5">
