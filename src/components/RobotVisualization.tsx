@@ -38,29 +38,29 @@ const RobotVisualization: React.FC<RobotVisualizationProps> = ({ robots, totalRo
   };
 
   return (
-    <Card className="p-3">
-      <h3 className="text-sm font-semibold text-gray-800 mb-3">Robot Positions</h3>
+    <Card className="p-2">
+      <h3 className="text-xs font-semibold text-gray-800 mb-1">Robot Positions</h3>
       
-      <div className="space-y-2">
+      <div className="space-y-1">
         {Array.from({ length: totalRows }, (_, rowIndex) => {
           const robotsInRow = getRobotsInRow(rowIndex);
           
           return (
-            <div key={rowIndex} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-              <div className="w-16 text-xs font-medium text-gray-700">
+            <div key={rowIndex} className="flex items-center space-x-2 p-1 bg-gray-50 rounded">
+              <div className="w-12 text-xs font-medium text-gray-700">
                 {getRowLabel(rowIndex)}
               </div>
               
-              <div className="flex-1 flex items-center space-x-2 min-h-[30px]">
+              <div className="flex-1 flex items-center space-x-1 min-h-[24px]">
                 {robotsInRow.length > 0 ? (
                   robotsInRow.map(robot => (
                     <div
                       key={robot.id}
-                      className="flex items-center space-x-1 px-2 py-1 bg-white rounded-full shadow-sm border"
+                      className="flex items-center space-x-1 px-1 py-0.5 bg-white rounded shadow-sm border"
                       title={`${robot.name} - ${robot.status} - ${robot.batteryLevel}%`}
                     >
-                      <div className={`w-2 h-2 rounded-full ${getRobotColor(robot.status)}`} />
-                      <Bot className="w-3 h-3 text-gray-600" />
+                      <div className={`w-1.5 h-1.5 rounded-full ${getRobotColor(robot.status)}`} />
+                      <Bot className="w-2.5 h-2.5 text-gray-600" />
                       <span className="text-xs font-medium">{robot.name}</span>
                       <span className="text-xs text-gray-500">{robot.batteryLevel}%</span>
                     </div>
@@ -74,21 +74,21 @@ const RobotVisualization: React.FC<RobotVisualizationProps> = ({ robots, totalRo
         })}
       </div>
       
-      <div className="mt-3 flex flex-wrap gap-3 text-xs">
+      <div className="mt-2 flex flex-wrap gap-2 text-xs">
         <div className="flex items-center space-x-1">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
           <span>Active</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-2 h-2 rounded-full bg-yellow-500" />
+          <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
           <span>Idle</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-2 h-2 rounded-full bg-blue-500" />
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
           <span>Charging</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-2 h-2 rounded-full bg-red-500" />
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
           <span>Error</span>
         </div>
       </div>
