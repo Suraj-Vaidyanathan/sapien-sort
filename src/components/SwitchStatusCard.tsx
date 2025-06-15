@@ -17,26 +17,22 @@ const SwitchStatusCard: React.FC<SwitchStatusCardProps> = ({ totalRows, switches
   const getRowLabel = (rowIndex: number) => {
     if (rowIndex === 0) return 'Infeed';
     if (rowIndex === totalRows - 1) return 'Charging';
-    return `Chute ${rowIndex}`;
+    return `Ch${rowIndex}`;
   };
 
   const SwitchIcon: React.FC<{ status: boolean; side: 'left' | 'right' }> = ({ status, side }) => (
-    <div className={`flex items-center space-x-1 px-2 py-1 rounded ${status ? 'bg-green-100' : 'bg-red-100'}`}>
-      {status ? (
-        <span className="w-2 h-2 inline-block rounded-full bg-green-500" />
-      ) : (
-        <span className="w-2 h-2 inline-block rounded-full bg-red-500" />
-      )}
+    <div className={`flex items-center space-x-1 px-1 py-0.5 rounded ${status ? 'bg-green-100' : 'bg-red-100'}`}>
+      <span className={`w-1.5 h-1.5 inline-block rounded-full ${status ? 'bg-green-500' : 'bg-red-500'}`} />
       <span className={`text-xs font-medium ${status ? 'text-green-700' : 'text-red-700'}`}>
-        {side.toUpperCase()}
+        {side === 'left' ? 'L' : 'R'}
       </span>
     </div>
   );
 
   return (
-    <Card className="p-3">
-      <h3 className="text-sm font-semibold text-gray-800 mb-3">Level Gate Switch Status</h3>
-      <div className="space-y-2">
+    <Card className="p-2">
+      <h3 className="text-xs font-semibold text-gray-800 mb-2">Gate Switch Status</h3>
+      <div className="space-y-1">
         {Array.from({ length: totalRows }, (_, rowIndex) => {
           const rowSwitches = switches[rowIndex] || { entry: [], exit: [] };
           
@@ -46,21 +42,21 @@ const SwitchStatusCard: React.FC<SwitchStatusCardProps> = ({ totalRows, switches
           const exitStatus = !entryStatus; // Exit is opposite of entry
 
           return (
-            <div key={rowIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-              <div className="w-16 text-xs font-medium text-gray-700">
+            <div key={rowIndex} className="flex items-center justify-between p-1 bg-gray-50 rounded">
+              <div className="w-10 text-xs font-medium text-gray-700">
                 {getRowLabel(rowIndex)}
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex flex-col items-center space-y-1">
-                  <span className="text-xs text-gray-600">Entry</span>
-                  <div className="flex space-x-1">
+              <div className="flex items-center space-x-2">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-gray-600 mb-0.5">Entry</span>
+                  <div className="flex space-x-0.5">
                     <SwitchIcon status={entryStatus} side="left" />
                     <SwitchIcon status={entryStatus} side="right" />
                   </div>
                 </div>
-                <div className="flex flex-col items-center space-y-1">
-                  <span className="text-xs text-gray-600">Exit</span>
-                  <div className="flex space-x-1">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-gray-600 mb-0.5">Exit</span>
+                  <div className="flex space-x-0.5">
                     <SwitchIcon status={exitStatus} side="left" />
                     <SwitchIcon status={exitStatus} side="right" />
                   </div>

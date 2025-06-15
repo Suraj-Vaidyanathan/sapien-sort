@@ -77,17 +77,17 @@ const Overview = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-2">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">System Overview</h1>
-          <p className="text-gray-600 text-sm">
+        <div className="mb-2">
+          <h1 className="text-xl font-bold text-gray-900">System Overview</h1>
+          <p className="text-gray-600 text-xs">
             Real-time monitoring of robotic package sorting system
           </p>
         </div>
 
         {/* Top row - System and Infeed Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 mb-2">
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
           <CurrentPackageCard {...currentPackage} />
@@ -95,13 +95,15 @@ const Overview = () => {
         </div>
 
         {/* Middle row - Robot Visualization and Switch Status */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
-          <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-2 mb-2">
+          <div className="xl:col-span-2">
+            <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
+          </div>
           <SwitchStatusCard totalRows={TOTAL_ROWS} switches={mappedSwitches} />
         </div>
 
         {/* Bottom row - Package Table and Bin Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
           <PackageTable packages={mappedPackages} />
           <BinGrid bins={bins} />
         </div>
