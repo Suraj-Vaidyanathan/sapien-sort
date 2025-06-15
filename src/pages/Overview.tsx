@@ -10,40 +10,6 @@ import BatteryStatusCard from '@/components/BatteryStatusCard';
 import PackageTable from '@/components/PackageTable';
 import BinGrid from '@/components/BinGrid';
 
-// Helper types for adapting to component expectations
-type SwitchCardType = {
-  id: string;
-  status: boolean;
-  side: 'left' | 'right';
-};
-
-type SwitchesForRows = {
-  [rowIndex: number]: { entry: SwitchCardType[]; exit: SwitchCardType[] };
-};
-
-type PackageInfo = {
-  id: string;
-  uid: string;
-  botAssigned: string | null;
-  destination: string | null;
-  status: 'completed' | 'pending' | 'processing';
-  timestamp: string;
-};
-
-const statusMap = (status: string): 'completed' | 'processing' | 'pending' => {
-  switch (status) {
-    case 'completed':
-      return 'completed';
-    case 'processing':
-      return 'processing';
-    case 'pending':
-      return 'pending';
-    default:
-      // Fallback to 'pending' for unknown status value
-      return 'pending';
-  }
-};
-
 const Overview = () => {
   const {
     systemStatus,
@@ -52,45 +18,30 @@ const Overview = () => {
     switches,
     packages,
     bins,
-    chutes,
-    botActive,
-    cvRunning,
-    infeedOverview,
-    totalRows,
   } = useRealtimeData();
 
-  // Map switches into the props expected by SwitchStatusCard
-  const switchStatusCardData: SwitchesForRows = {};
-  Object.entries(switches).forEach(([rowKey, sw]) => {
-    switchStatusCardData[Number(rowKey)] = {
-      entry: sw.entry.map((s) => ({
-        id: s.id,
-        status: s.state,
-        side: s.side,
-      })),
-      exit: sw.exit.map((s) => ({
-        id: s.id,
-        status: s.state,
-        side: s.side,
-      })),
-    };
-  });
+  const TOTAL_ROWS = 5;
 
-  // Map packages to have compatible status type for PackageTable
-  const packageTableData: PackageInfo[] = packages.map((pkg) => ({
-    ...pkg,
-    status: statusMap(pkg.status),
-  }));
-
-  // Use human-readable/DB-provided metrics everywhere
+  // Dynamically compute botActive based on real data
+  const activeBotCount = robots.filter(r => r.status === 'active').length;
+  const totalBotCount = robots.length;
   const systemOverview = {
-    botActive: botActive,
-    cvRunning: cvRunning,
+    botActive: `${activeBotCount}/${totalBotCount}`,
+    cvRunning: '4/4',
     networkStatus: 'Online',
     wcsStatus: 'Healthy',
     wmsStatus: 'Healthy',
     plcStatus: 'Healthy',
     warnings: 'Healthy',
+  };
+
+  const infeedOverview = {
+    cvStatus: 'Healthy',
+    cvSpeed: '0.8 m/s',
+    camStatus: 'Healthy',
+    profilerStatus: 'Healthy',
+    mergerCvStatus: 'Healthy',
+    mergerSpeed: '1 m/s',
   };
 
   return (
@@ -103,7 +54,7 @@ const Overview = () => {
           </p>
         </div>
 
-        {/* Overview Row - System and Infeed Overview */}
+        {/* Overview Row - mimics layout in image (System and Infeed Overview) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
@@ -117,13 +68,13 @@ const Overview = () => {
 
         {/* Robot Visualization and Switch Status */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-          <RobotVisualization robots={robots} totalRows={totalRows} />
-          <SwitchStatusCard totalRows={totalRows} switches={switchStatusCardData} />
+          <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
+          <SwitchStatusCard totalRows={TOTAL_ROWS} switches={switches} />
         </div>
 
         {/* Package Table */}
         <div className="mb-6">
-          <PackageTable packages={packageTableData} />
+          <PackageTable packages={packages} />
         </div>
 
         {/* Bin Grid */}
@@ -134,5 +85,5 @@ const Overview = () => {
     </div>
   );
 };
-
 export default Overview;
+
