@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useRealtimeData } from '@/hooks/useRealtimeData';
 import SystemOverviewCard from '@/components/SystemOverviewCard';
@@ -9,8 +10,7 @@ import BatteryStatusCard from '@/components/BatteryStatusCard';
 import PackageTable from '@/components/PackageTable';
 import BinGrid from '@/components/BinGrid';
 
-const CARD_CLASS = "p-3 bg-blue-50 border-blue-300 rounded shadow max-w-full h-full min-h-0 flex flex-col justify-center";
-const GRID_COMMON = "gap-3";
+const TOTAL_ROWS = 5;
 
 const Overview = () => {
   const {
@@ -22,7 +22,6 @@ const Overview = () => {
     bins,
   } = useRealtimeData();
 
-  const TOTAL_ROWS = 5;
   const activeBotCount = robots.filter(r => r.status === 'active').length;
   const totalBotCount = robots.length;
   const systemOverview = {
@@ -45,23 +44,49 @@ const Overview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center px-2">
-      <div className="w-full max-w-screen-xl flex flex-col gap-3" style={{height: '96vh'}}>
-        <div className="grid grid-cols-2 gap-3" style={{ height: '13%' }}>
-          <SystemOverviewCard {...systemOverview} className={CARD_CLASS} />
-          <InfeedOverviewCard {...infeedOverview} className={CARD_CLASS} />
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-2">
+      <div
+        className="
+          w-full
+          max-w-screen-xl
+          flex flex-col
+          gap-2
+          justify-center
+          mx-auto
+          "
+        style={{ height: '100vh', minHeight: 0 }}
+      >
+        {/* 1st row: Overview cards - smaller paddings, tighter */}
+        <div className="grid grid-cols-2 gap-2" style={{ height: '12%' }}>
+          <SystemOverviewCard {...systemOverview} />
+          <InfeedOverviewCard {...infeedOverview} />
         </div>
-        <div className="grid grid-cols-4 gap-3" style={{ height: '17%' }}>
-          <CurrentPackageCard {...currentPackage} className={CARD_CLASS + " col-span-3"} />
-          <BatteryStatusCard robots={robots} className={CARD_CLASS + " "} />
+        {/* 2nd row: Current Package + Battery Status */}
+        <div className="grid grid-cols-4 gap-2" style={{ height: '18%' }}>
+          <div className="col-span-3 h-full flex">
+            <CurrentPackageCard {...currentPackage} />
+          </div>
+          <div className="h-full flex">
+            <BatteryStatusCard robots={robots} />
+          </div>
         </div>
-        <div className="grid grid-cols-6 gap-3" style={{ height: '27%' }}>
-          <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} className={CARD_CLASS + " col-span-4"} />
-          <SwitchStatusCard totalRows={TOTAL_ROWS} switches={switches} className={CARD_CLASS + " col-span-2"} />
+        {/* 3rd row: Bot visualization + Switch */}
+        <div className="grid grid-cols-6 gap-2" style={{ height: '26%' }}>
+          <div className="col-span-4 h-full flex">
+            <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
+          </div>
+          <div className="col-span-2 h-full flex">
+            <SwitchStatusCard totalRows={TOTAL_ROWS} switches={switches} />
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-3" style={{ height: '22%' }}>
-          <PackageTable packages={packages} className={CARD_CLASS + " "} />
-          <BinGrid bins={bins} className={CARD_CLASS + " "} />
+        {/* 4th row: Package Table + BinGrid - smaller */}
+        <div className="grid grid-cols-2 gap-2" style={{ height: '18%' }}>
+          <div className="h-full flex">
+            <PackageTable packages={packages} />
+          </div>
+          <div className="h-full flex">
+            <BinGrid bins={bins} />
+          </div>
         </div>
       </div>
     </div>

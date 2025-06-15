@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Battery, BatteryLow, BatteryCharging } from 'lucide-react';
@@ -35,23 +34,20 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
   };
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Battery Status</h3>
-      
-      <div className="grid grid-cols-1 gap-3">
+    <Card className="p-3 h-full">
+      <h3 className="text-base font-semibold text-gray-800 mb-2">Battery Status</h3>
+      <div className="grid grid-cols-1 gap-2">
         {robots.map(robot => {
           const BatteryIcon = getBatteryIcon(robot.batteryLevel, robot.status);
-          
           return (
-            <div key={robot.id} className={`p-3 rounded-lg ${getBatteryBg(robot.batteryLevel)}`}>
+            <div key={robot.id} className={`p-2 rounded-lg ${getBatteryBg(robot.batteryLevel)}`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <BatteryIcon className={`w-5 h-5 ${getBatteryColor(robot.batteryLevel, robot.status)}`} />
-                  <span className="font-medium text-gray-800">{robot.name}</span>
-                </div>
-                
                 <div className="flex items-center space-x-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
+                  <BatteryIcon className={`w-4 h-4 ${getBatteryColor(robot.batteryLevel, robot.status)}`} />
+                  <span className="font-medium text-gray-800 text-xs">{robot.name}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${
                         robot.batteryLevel <= 20 ? 'bg-red-500' :
@@ -60,7 +56,7 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
                       style={{ width: `${robot.batteryLevel}%` }}
                     />
                   </div>
-                  <span className={`text-sm font-medium ${getBatteryColor(robot.batteryLevel, robot.status)}`}>
+                  <span className={`text-xs font-medium ${getBatteryColor(robot.batteryLevel, robot.status)}`}>
                     {robot.batteryLevel}%
                   </span>
                 </div>
