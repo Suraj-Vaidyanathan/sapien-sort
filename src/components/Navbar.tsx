@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, LayoutDashboard, Package, Settings } from 'lucide-react';
+import { Home, LayoutDashboard, Package, Settings, Eye } from 'lucide-react';
 
 const Navbar = () => {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
+    { name: 'Overview', path: '/overview', icon: Eye },
     { name: 'Live Page', path: '/live', icon: LayoutDashboard },
     { name: 'System Health', path: '/system-health', icon: LayoutDashboard },
     { name: 'Manual Control', path: '/manual-control', icon: LayoutDashboard },

@@ -41,21 +41,21 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
   };
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Bin Status Grid</h3>
+    <Card className="p-3">
+      <h3 className="text-sm font-semibold text-gray-800 mb-3">Bin Status Grid</h3>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
         {bins.map(bin => (
           <div
             key={bin.id}
-            className={`p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getBinColor(bin)}`}
+            className={`p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${getBinColor(bin)}`}
           >
-            <div className="flex flex-col items-center space-y-2">
-              <Box className={`w-6 h-6 ${getBinTextColor(bin)}`} />
+            <div className="flex flex-col items-center space-y-1">
+              <Box className={`w-4 h-4 ${getBinTextColor(bin)}`} />
               
               <div className="text-center">
                 <div className="text-xs font-medium text-gray-600">{bin.location}</div>
-                <div className={`text-sm font-bold ${getBinTextColor(bin)}`}>
+                <div className={`text-xs font-bold ${getBinTextColor(bin)}`}>
                   {bin.currentCount}/{bin.capacity}
                 </div>
                 <div className={`text-xs ${getBinTextColor(bin)}`}>
@@ -63,9 +63,9 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                 </div>
               </div>
               
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 rounded-full h-1">
                 <div
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-1 rounded-full transition-all duration-300 ${
                     bin.status === 'maintenance' ? 'bg-red-500' :
                     bin.status === 'full' ? 'bg-red-500' :
                     getFillPercentage(bin) >= 90 ? 'bg-yellow-500' :
@@ -79,22 +79,22 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
         ))}
       </div>
       
-      <div className="mt-4 flex flex-wrap gap-4 text-xs">
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
         <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span>Available (&lt;50%)</span>
+          <div className="w-2 h-2 rounded-full bg-green-500" />
+          <span>Available</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 rounded-full bg-blue-500" />
-          <span>Filling (50-89%)</span>
+          <div className="w-2 h-2 rounded-full bg-blue-500" />
+          <span>Filling</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 rounded-full bg-yellow-500" />
-          <span>Nearly Full (90-99%)</span>
+          <div className="w-2 h-2 rounded-full bg-yellow-500" />
+          <span>Nearly Full</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 rounded-full bg-red-500" />
-          <span>Full/Maintenance</span>
+          <div className="w-2 h-2 rounded-full bg-red-500" />
+          <span>Full/Maint</span>
         </div>
       </div>
     </Card>
