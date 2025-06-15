@@ -6,7 +6,6 @@ import { Home, LayoutDashboard, Package, Settings } from 'lucide-react';
 const Navbar = () => {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Overview', path: '/overview', icon: LayoutDashboard },
     { name: 'Live Page', path: '/live', icon: LayoutDashboard },
     { name: 'System Health', path: '/system-health', icon: LayoutDashboard },
     { name: 'Manual Control', path: '/manual-control', icon: LayoutDashboard },
@@ -25,7 +24,7 @@ const Navbar = () => {
             </div>
             <span className="text-xl font-bold">RoboSort</span>
           </div>
-
+          
           {/* Navigation */}
           <div className="flex space-x-1">
             {navItems.map((item) => (

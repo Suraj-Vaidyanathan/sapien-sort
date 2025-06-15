@@ -10,7 +10,39 @@ import BatteryStatusCard from '@/components/BatteryStatusCard';
 import PackageTable from '@/components/PackageTable';
 import BinGrid from '@/components/BinGrid';
 
-const TOTAL_ROWS = 5;
+// Helper types for adapting to component expectations
+type SwitchCardType = {
+  id: string;
+  status: boolean;
+  side: 'left' | 'right';
+};
+
+type SwitchesForRows = {
+  [rowIndex: number]: { entry: SwitchCardType[]; exit: SwitchCardType[] };
+};
+
+type PackageInfo = {
+  id: string;
+  uid: string;
+  botAssigned: string | null;
+  destination: string | null;
+  status: 'completed' | 'pending' | 'processing';
+  timestamp: string;
+};
+
+const statusMap = (status: string): 'completed' | 'processing' | 'pending' => {
+  switch (status) {
+    case 'completed':
+      return 'completed';
+    case 'processing':
+      return 'processing';
+    case 'pending':
+      return 'pending';
+    default:
+      // Fallback to 'pending' for unknown status value
+      return 'pending';
+  }
+};
 
 const Overview = () => {
   const {
@@ -20,13 +52,40 @@ const Overview = () => {
     switches,
     packages,
     bins,
+    chutes,
+    botActive,
+    cvRunning,
+    infeedOverview,
+    totalRows,
   } = useRealtimeData();
 
-  const activeBotCount = robots.filter(r => r.status === 'active').length;
-  const totalBotCount = robots.length;
+  // Map switches into the props expected by SwitchStatusCard
+  const switchStatusCardData: SwitchesForRows = {};
+  Object.entries(switches).forEach(([rowKey, sw]) => {
+    switchStatusCardData[Number(rowKey)] = {
+      entry: sw.entry.map((s) => ({
+        id: s.id,
+        status: s.state,
+        side: s.side,
+      })),
+      exit: sw.exit.map((s) => ({
+        id: s.id,
+        status: s.state,
+        side: s.side,
+      })),
+    };
+  });
+
+  // Map packages to have compatible status type for PackageTable
+  const packageTableData: PackageInfo[] = packages.map((pkg) => ({
+    ...pkg,
+    status: statusMap(pkg.status),
+  }));
+
+  // Use human-readable/DB-provided metrics everywhere
   const systemOverview = {
-    botActive: `${activeBotCount}/${totalBotCount}`,
-    cvRunning: `${TOTAL_ROWS}/${TOTAL_ROWS}`,
+    botActive: botActive,
+    cvRunning: cvRunning,
     networkStatus: 'Online',
     wcsStatus: 'Healthy',
     wmsStatus: 'Healthy',
@@ -34,62 +93,46 @@ const Overview = () => {
     warnings: 'Healthy',
   };
 
-  const infeedOverview = {
-    cvStatus: 'Healthy',
-    cvSpeed: '0.8 m/s',
-    camStatus: 'Healthy',
-    profilerStatus: 'Healthy',
-    mergerCvStatus: 'Healthy',
-    mergerSpeed: '1 m/s',
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-2">
-      <div
-        className="
-          w-full
-          max-w-screen-xl
-          flex flex-col
-          gap-2
-          justify-center
-          mx-auto
-          "
-        style={{ height: '100vh', minHeight: 0 }}
-      >
-        {/* 1st row: Overview cards - smaller paddings, tighter */}
-        <div className="grid grid-cols-2 gap-2" style={{ height: '12%' }}>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">System Overview</h1>
+          <p className="text-gray-600 mt-2">
+            Real-time monitoring of robotic package sorting system
+          </p>
+        </div>
+
+        {/* Overview Row - System and Infeed Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
         </div>
-        {/* 2nd row: Current Package + Battery Status */}
-        <div className="grid grid-cols-4 gap-2" style={{ height: '18%' }}>
-          <div className="col-span-3 h-full flex">
-            <CurrentPackageCard {...currentPackage} />
-          </div>
-          <div className="h-full flex">
-            <BatteryStatusCard robots={robots} />
-          </div>
+
+        {/* Top row - Current Package */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <CurrentPackageCard {...currentPackage} />
+          <BatteryStatusCard robots={robots} />
         </div>
-        {/* 3rd row: Bot visualization + Switch */}
-        <div className="grid grid-cols-6 gap-2" style={{ height: '26%' }}>
-          <div className="col-span-4 h-full flex">
-            <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
-          </div>
-          <div className="col-span-2 h-full flex">
-            <SwitchStatusCard totalRows={TOTAL_ROWS} switches={switches} />
-          </div>
+
+        {/* Robot Visualization and Switch Status */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+          <RobotVisualization robots={robots} totalRows={totalRows} />
+          <SwitchStatusCard totalRows={totalRows} switches={switchStatusCardData} />
         </div>
-        {/* 4th row: Package Table + BinGrid - smaller */}
-        <div className="grid grid-cols-2 gap-2" style={{ height: '18%' }}>
-          <div className="h-full flex">
-            <PackageTable packages={packages} />
-          </div>
-          <div className="h-full flex">
-            <BinGrid bins={bins} />
-          </div>
+
+        {/* Package Table */}
+        <div className="mb-6">
+          <PackageTable packages={packageTableData} />
+        </div>
+
+        {/* Bin Grid */}
+        <div className="mb-6">
+          <BinGrid bins={bins} />
         </div>
       </div>
     </div>
   );
 };
+
 export default Overview;
