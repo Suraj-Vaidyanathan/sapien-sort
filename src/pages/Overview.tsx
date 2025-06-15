@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useRealtimeData } from '@/hooks/useRealtimeData';
 import SystemOverviewCard from '@/components/SystemOverviewCard';
@@ -9,6 +8,8 @@ import SwitchStatusCard from '@/components/SwitchStatusCard';
 import BatteryStatusCard from '@/components/BatteryStatusCard';
 import PackageTable from '@/components/PackageTable';
 import BinGrid from '@/components/BinGrid';
+import { Button } from '@/components/ui/button';
+import { Play, Pause, AlertTriangle } from 'lucide-react';
 
 const Overview = () => {
   const {
@@ -21,6 +22,21 @@ const Overview = () => {
   } = useRealtimeData();
 
   const TOTAL_ROWS = 5;
+
+  const handleStart = () => {
+    console.log('System started');
+    // Add start system logic here
+  };
+
+  const handlePause = () => {
+    console.log('System paused');
+    // Add pause system logic here
+  };
+
+  const handleEmergencyStop = () => {
+    console.log('Emergency stop activated');
+    // Add emergency stop logic here
+  };
 
   // Dynamically compute botActive based on real data
   const activeBotCount = robots.filter(r => r.status === 'active').length;
@@ -79,11 +95,31 @@ const Overview = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-1">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-1">
-          <h1 className="text-lg font-bold text-gray-900">System Overview</h1>
-          <p className="text-gray-600 text-xs">
-            Real-time monitoring of robotic package sorting system
-          </p>
+        {/* Control Buttons */}
+        <div className="mb-1 flex items-center gap-2 h-8">
+          <Button 
+            onClick={handleStart}
+            className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700"
+          >
+            <Play className="w-3 h-3 mr-1" />
+            Start
+          </Button>
+          <Button 
+            onClick={handlePause}
+            variant="outline"
+            className="h-7 px-3 text-xs"
+          >
+            <Pause className="w-3 h-3 mr-1" />
+            Pause
+          </Button>
+          <Button 
+            onClick={handleEmergencyStop}
+            variant="destructive"
+            className="h-7 px-3 text-xs"
+          >
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            Emergency Stop
+          </Button>
         </div>
 
         {/* Top row - System and Infeed Overview */}
