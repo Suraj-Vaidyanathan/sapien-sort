@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useSupabaseRealtimeData } from '@/hooks/useSupabaseRealtimeData';
 import { useSystemControl } from '@/hooks/useSystemControl';
@@ -51,14 +50,14 @@ const Overview = () => {
     warnings: activeBotCount < totalBotCount ? 'Warning' : 'Healthy',
   };
 
-  // Infeed overview data
+  // Infeed overview data with dynamic status based on system state
   const infeedOverview = {
-    cvStatus: 'Online',
-    cvSpeed: '1.2 m/s',
-    camStatus: 'Active',
-    profilerStatus: 'Online',
-    mergerCvStatus: 'Active',
-    mergerSpeed: '0.8 m/s',
+    cvStatus: systemState === 'running' ? 'Online' : systemState === 'paused' ? 'Warning' : 'Offline',
+    cvSpeed: systemState === 'running' ? '1.2 m/s' : '0.0 m/s',
+    camStatus: systemState === 'running' ? 'Active' : 'Offline',
+    profilerStatus: systemState === 'running' ? 'Online' : 'Offline',
+    mergerCvStatus: systemState === 'running' ? 'Active' : 'Offline',
+    mergerSpeed: systemState === 'running' ? '0.8 m/s' : '0.0 m/s',
   };
 
   // Mock switches data (since we don't have real switch data in DB yet)
