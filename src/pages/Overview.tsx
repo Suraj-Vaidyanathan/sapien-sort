@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { useRealtimeData } from '@/hooks/useRealtimeData';
+import { useSupabaseRealtimeData } from '@/hooks/useSupabaseRealtimeData';
 import SystemOverviewCard from '@/components/SystemOverviewCard';
 import InfeedOverviewCard from '@/components/InfeedOverviewCard';
 import CurrentPackageCard from '@/components/CurrentPackageCard';
@@ -13,13 +14,15 @@ import { Play, Pause, AlertTriangle } from 'lucide-react';
 
 const Overview = () => {
   const {
-    systemStatus,
-    currentPackage,
     robots,
-    switches,
     packages,
     bins,
-  } = useRealtimeData();
+    currentPackage,
+    systemStatus,
+    loading,
+    activeBotCount,
+    totalBotCount
+  } = useSupabaseRealtimeData();
 
   const TOTAL_ROWS = 5;
 
@@ -38,9 +41,18 @@ const Overview = () => {
     // Add emergency stop logic here
   };
 
-  // Dynamically compute botActive based on real data
-  const activeBotCount = robots.filter(r => r.status === 'active').length;
-  const totalBotCount = robots.length;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-gray-600 text-sm">Loading system data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // System overview data with real-time information
   const systemOverview = {
     botActive: `${activeBotCount}/${totalBotCount}`,
     cvRunning: '4/4',
@@ -48,7 +60,7 @@ const Overview = () => {
     wcsStatus: 'Healthy',
     wmsStatus: 'Healthy',
     plcStatus: 'Healthy',
-    warnings: 'Healthy',
+    warnings: activeBotCount < totalBotCount ? 'Warning' : 'Healthy',
   };
 
   const infeedOverview = {
@@ -60,37 +72,101 @@ const Overview = () => {
     mergerSpeed: '1 m/s',
   };
 
-  // Map switches to the expected format for SwitchStatusCard
-  const mappedSwitches = Object.keys(switches).reduce((acc, key) => {
-    const rowIndex = parseInt(key);
-    const rowSwitches = switches[rowIndex];
-    
-    acc[rowIndex] = {
-      entry: rowSwitches.entry.map(sw => ({
-        id: sw.id,
-        status: sw.state,
-        side: sw.side
-      })),
-      exit: rowSwitches.exit.map(sw => ({
-        id: sw.id,
-        status: sw.state,
-        side: sw.side
-      }))
-    };
-    
-    return acc;
-  }, {} as { [rowIndex: number]: { entry: { id: string; status: boolean; side: 'left' | 'right' }[]; exit: { id: string; status: boolean; side: 'left' | 'right' }[] } });
+  // Mock switches data (since we don't have real switch data in DB yet)
+  const mockSwitches = {
+    0: {
+      entry: [
+        { id: 'e0l', status: true, side: 'left' as const },
+        { id: 'e0r', status: true, side: 'right' as const },
+      ],
+      exit: [
+        { id: 'x0l', status: true, side: 'left' as const },
+        { id: 'x0r', status: false, side: 'right' as const },
+      ],
+    },
+    1: {
+      entry: [
+        { id: 'e1l', status: true, side: 'left' as const },
+        { id: 'e1r', status: true, side: 'right' as const },
+      ],
+      exit: [
+        { id: 'x1l', status: true, side: 'left' as const },
+        { id: 'x1r', status: true, side: 'right' as const },
+      ],
+    },
+    2: {
+      entry: [
+        { id: 'e2l', status: true, side: 'left' as const },
+        { id: 'e2r', status: true, side: 'right' as const },
+      ],
+      exit: [
+        { id: 'x2l', status: true, side: 'left' as const },
+        { id: 'x2r', status: true, side: 'right' as const },
+      ],
+    },
+    3: {
+      entry: [
+        { id: 'e3l', status: false, side: 'left' as const },
+        { id: 'e3r', status: true, side: 'right' as const },
+      ],
+      exit: [
+        { id: 'x3l', status: true, side: 'left' as const },
+        { id: 'x3r', status: true, side: 'right' as const },
+      ],
+    },
+    4: {
+      entry: [
+        { id: 'e4l', status: true, side: 'left' as const },
+        { id: 'e4r', status: true, side: 'right' as const },
+      ],
+      exit: [
+        { id: 'x4l', status: true, side: 'left' as const },
+        { id: 'x4r', status: true, side: 'right' as const },
+      ],
+    },
+  };
 
-  // Map packages to the expected format for PackageTable
-  const mappedPackages = packages.map(pkg => ({
-    uid: pkg.uid,
-    botAssigned: pkg.botAssigned,
-    destination: pkg.destination,
-    status: pkg.status === 'processing' ? 'processing' as const :
-             pkg.status === 'completed' ? 'completed' as const :
-             'pending' as const,
-    timestamp: pkg.timestamp
+  // Transform robots data to match existing interface
+  const transformedRobots = robots.map(robot => ({
+    id: robot.id,
+    name: robot.name,
+    currentRow: robot.current_row,
+    status: robot.status as 'active' | 'idle' | 'charging' | 'error',
+    batteryLevel: robot.battery_level
   }));
+
+  // Transform packages data
+  const transformedPackages = packages.map(pkg => ({
+    uid: pkg.uid,
+    botAssigned: pkg.bot_assigned,
+    destination: pkg.destination || 'Unknown',
+    status: pkg.status as 'processing' | 'completed' | 'pending',
+    timestamp: new Date(pkg.timestamp).toLocaleTimeString()
+  }));
+
+  // Transform bins data
+  const transformedBins = bins.map(bin => ({
+    id: bin.id,
+    location: bin.location,
+    capacity: bin.capacity,
+    currentCount: bin.current_count,
+    status: bin.status as 'available' | 'full' | 'maintenance'
+  }));
+
+  // Transform current package data
+  const transformedCurrentPackage = currentPackage ? {
+    packageId: currentPackage.uid,
+    destination: currentPackage.destination,
+    assignedBot: currentPackage.bot_assigned,
+    estimatedTime: '2m 30s', // Mock value
+    currentRow: transformedRobots.find(r => r.name === currentPackage.bot_assigned)?.currentRow || 0
+  } : {
+    packageId: null,
+    destination: null,
+    assignedBot: null,
+    estimatedTime: null,
+    currentRow: null
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-1">
@@ -126,24 +202,24 @@ const Overview = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-1 mb-1">
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
-          <CurrentPackageCard {...currentPackage} />
-          <BatteryStatusCard robots={robots} />
+          <CurrentPackageCard {...transformedCurrentPackage} />
+          <BatteryStatusCard robots={transformedRobots} />
         </div>
 
         {/* Middle row - Robot Visualization and Switch Status */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-1 mb-1">
           <div className="xl:col-span-2">
-            <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
+            <RobotVisualization robots={transformedRobots} totalRows={TOTAL_ROWS} />
           </div>
           <div className="xl:col-span-1">
-            <SwitchStatusCard totalRows={TOTAL_ROWS} switches={mappedSwitches} />
+            <SwitchStatusCard totalRows={TOTAL_ROWS} switches={mockSwitches} />
           </div>
         </div>
 
         {/* Bottom row - Package Table and Bin Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-1">
-          <PackageTable packages={mappedPackages} />
-          <BinGrid bins={bins} />
+          <PackageTable packages={transformedPackages} />
+          <BinGrid bins={transformedBins} />
         </div>
       </div>
     </div>
