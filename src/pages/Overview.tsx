@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useSupabaseRealtimeData } from '@/hooks/useSupabaseRealtimeData';
 import { useSystemControl } from '@/hooks/useSystemControl';
@@ -48,6 +49,16 @@ const Overview = () => {
     wmsStatus: 'Healthy',
     plcStatus: 'Healthy',
     warnings: activeBotCount < totalBotCount ? 'Warning' : 'Healthy',
+  };
+
+  // Infeed overview data
+  const infeedOverview = {
+    cvStatus: 'Online',
+    cvSpeed: '1.2 m/s',
+    camStatus: 'Active',
+    profilerStatus: 'Online',
+    mergerCvStatus: 'Active',
+    mergerSpeed: '0.8 m/s',
   };
 
   // Mock switches data (since we don't have real switch data in DB yet)
