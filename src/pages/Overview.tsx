@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { useSupabaseRealtimeData } from '@/hooks/useSupabaseRealtimeData';
+import { useSystemControl } from '@/hooks/useSystemControl';
 import SystemOverviewCard from '@/components/SystemOverviewCard';
 import InfeedOverviewCard from '@/components/InfeedOverviewCard';
 import CurrentPackageCard from '@/components/CurrentPackageCard';
@@ -24,22 +24,9 @@ const Overview = () => {
     totalBotCount
   } = useSupabaseRealtimeData();
 
+  const { systemState, startSystem, pauseSystem, emergencyStop } = useSystemControl();
+
   const TOTAL_ROWS = 5;
-
-  const handleStart = () => {
-    console.log('System started');
-    // Add start system logic here
-  };
-
-  const handlePause = () => {
-    console.log('System paused');
-    // Add pause system logic here
-  };
-
-  const handleEmergencyStop = () => {
-    console.log('Emergency stop activated');
-    // Add emergency stop logic here
-  };
 
   if (loading) {
     return (
@@ -61,15 +48,6 @@ const Overview = () => {
     wmsStatus: 'Healthy',
     plcStatus: 'Healthy',
     warnings: activeBotCount < totalBotCount ? 'Warning' : 'Healthy',
-  };
-
-  const infeedOverview = {
-    cvStatus: 'Healthy',
-    cvSpeed: '0.8 m/s',
-    camStatus: 'Healthy',
-    profilerStatus: 'Healthy',
-    mergerCvStatus: 'Healthy',
-    mergerSpeed: '1 m/s',
   };
 
   // Mock switches data (since we don't have real switch data in DB yet)
@@ -174,28 +152,38 @@ const Overview = () => {
         {/* Control Buttons */}
         <div className="mb-1 flex items-center gap-2 h-8">
           <Button 
-            onClick={handleStart}
-            className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700"
+            onClick={startSystem}
+            disabled={systemState === 'running'}
+            className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700 disabled:opacity-50"
           >
             <Play className="w-3 h-3 mr-1" />
             Start
           </Button>
           <Button 
-            onClick={handlePause}
+            onClick={pauseSystem}
+            disabled={systemState === 'stopped'}
             variant="outline"
-            className="h-7 px-3 text-xs"
+            className="h-7 px-3 text-xs disabled:opacity-50"
           >
             <Pause className="w-3 h-3 mr-1" />
             Pause
           </Button>
           <Button 
-            onClick={handleEmergencyStop}
+            onClick={emergencyStop}
             variant="destructive"
             className="h-7 px-3 text-xs"
           >
             <AlertTriangle className="w-3 h-3 mr-1" />
             Emergency Stop
           </Button>
+          <div className="ml-2 text-xs text-gray-600">
+            Status: <span className={`font-medium ${
+              systemState === 'running' ? 'text-green-600' : 
+              systemState === 'paused' ? 'text-yellow-600' : 'text-red-600'
+            }`}>
+              {systemState.charAt(0).toUpperCase() + systemState.slice(1)}
+            </span>
+          </div>
         </div>
 
         {/* Top row - System and Infeed Overview */}

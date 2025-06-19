@@ -23,12 +23,28 @@ const SystemOverviewCard: React.FC<SystemOverviewCardProps> = ({
   warnings,
 }) => {
   const getStatusColor = (status: string) => {
+    // Handle fraction values like "4/4", "3/4", etc.
+    if (status.includes('/')) {
+      const [current, total] = status.split('/').map(Number);
+      if (current === total) return 'text-green-600';
+      if (current >= total * 0.5) return 'text-yellow-600';
+      return 'text-red-600';
+    }
+    
     if (status === 'Healthy' || status === 'Online') return 'text-green-600';
     if (status === 'Warning' || status.includes('Warning')) return 'text-yellow-600';
     return 'text-red-600';
   };
 
   const getStatusIcon = (status: string) => {
+    // Handle fraction values like "4/4", "3/4", etc.
+    if (status.includes('/')) {
+      const [current, total] = status.split('/').map(Number);
+      if (current === total) return CheckCircle;
+      if (current >= total * 0.5) return AlertTriangle;
+      return XCircle;
+    }
+    
     if (status === 'Healthy' || status === 'Online') return CheckCircle;
     if (status === 'Warning' || status.includes('Warning')) return AlertTriangle;
     return XCircle;
