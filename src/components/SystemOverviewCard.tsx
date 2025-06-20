@@ -54,10 +54,10 @@ const SystemOverviewCard: React.FC<SystemOverviewCardProps> = ({
     const Icon = getStatusIcon(value);
     return (
       <li className="flex items-center justify-between">
-        <span className="font-semibold text-xs">{label}:</span>
+        <span className="font-semibold text-sm">{label}:</span>
         <div className="flex items-center space-x-1">
-          <Icon className={`w-3 h-3 ${getStatusColor(value)}`} />
-          <span className={`text-xs ${getStatusColor(value)}`}>{value}</span>
+          <Icon className={`w-4 h-4 ${getStatusColor(value)}`} />
+          <span className={`text-sm ${getStatusColor(value)}`}>{value}</span>
         </div>
       </li>
     );
@@ -65,7 +65,7 @@ const SystemOverviewCard: React.FC<SystemOverviewCardProps> = ({
 
   return (
     <Card className="p-3 bg-blue-50 border-blue-300">
-      <h3 className="text-sm font-bold text-blue-900 mb-2">System Overview</h3>
+      <h3 className="text-base font-bold text-blue-900 mb-2">System Overview</h3>
       <ul className="space-y-1 text-gray-800">
         <StatusItem label="BOT Active" value={botActive} />
         <StatusItem label="CV Running" value={cvRunning} />

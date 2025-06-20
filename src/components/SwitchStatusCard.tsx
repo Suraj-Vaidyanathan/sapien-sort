@@ -20,12 +20,19 @@ const SwitchStatusCard: React.FC<SwitchStatusCardProps> = ({ totalRows, switches
     return `Ch${rowIndex}`;
   };
 
+  const getCurrentValue = (status: boolean) => {
+    return status ? `${(Math.random() * 2 + 1).toFixed(1)}A` : '0.0A';
+  };
+
   const SwitchIcon: React.FC<{ status: boolean; side: 'left' | 'right' }> = ({ status, side }) => (
-    <div className={`flex items-center space-x-0.5 px-1 py-0.5 rounded ${status ? 'bg-green-100' : 'bg-red-100'}`}>
-      <span className={`w-0.5 h-0.5 inline-block rounded-full ${status ? 'bg-green-500' : 'bg-red-500'}`} />
-      <span className={`text-xs font-medium ${status ? 'text-green-700' : 'text-red-700'}`}>
-        {side === 'left' ? 'L' : 'R'}
-      </span>
+    <div className={`flex flex-col items-center space-y-0.5 px-1 py-0.5 rounded ${status ? 'bg-green-100' : 'bg-red-100'}`}>
+      <div className="flex items-center space-x-0.5">
+        <span className={`w-0.5 h-0.5 inline-block rounded-full ${status ? 'bg-green-500' : 'bg-red-500'}`} />
+        <span className={`text-xs font-medium ${status ? 'text-green-700' : 'text-red-700'}`}>
+          {side === 'left' ? 'L' : 'R'}
+        </span>
+      </div>
+      <span className="text-xs text-gray-600">{getCurrentValue(status)}</span>
     </div>
   );
 

@@ -34,6 +34,12 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
     return 'bg-green-100';
   };
 
+  const getCurrentValue = (status: string) => {
+    if (status === 'charging') return `${(Math.random() * 2 + 1).toFixed(1)}A`;
+    if (status === 'active') return `${(Math.random() * 3 + 4).toFixed(1)}A`;
+    return '0.0A';
+  };
+
   return (
     <Card className="p-3">
       <h3 className="text-sm font-semibold text-gray-800 mb-2">Battery Status</h3>
@@ -41,6 +47,7 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
       <div className="grid grid-cols-1 gap-2">
         {robots.map(robot => {
           const BatteryIcon = getBatteryIcon(robot.batteryLevel, robot.status);
+          const currentValue = getCurrentValue(robot.status);
           
           return (
             <div key={robot.id} className={`p-2 rounded-lg ${getBatteryBg(robot.batteryLevel)}`}>
@@ -50,19 +57,26 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
                   <span className="font-medium text-gray-800 text-xs">{robot.name}</span>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        robot.batteryLevel <= 20 ? 'bg-red-500' :
-                        robot.batteryLevel <= 50 ? 'bg-yellow-500' : 'bg-green-500'
-                      }`}
-                      style={{ width: `${robot.batteryLevel}%` }}
-                    />
+                <div className="flex items-center space-x-3">
+                  <div className="text-center">
+                    <div className="text-xs text-gray-600">Current</div>
+                    <div className="text-xs font-medium text-gray-800">{currentValue}</div>
                   </div>
-                  <span className={`text-xs font-medium ${getBatteryColor(robot.batteryLevel, robot.status)}`}>
-                    {robot.batteryLevel}%
-                  </span>
+                  
+                  <div className="flex items-center space-x-2">
+                    <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          robot.batteryLevel <= 20 ? 'bg-red-500' :
+                          robot.batteryLevel <= 50 ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${robot.batteryLevel}%` }}
+                      />
+                    </div>
+                    <span className={`text-xs font-medium ${getBatteryColor(robot.batteryLevel, robot.status)}`}>
+                      {robot.batteryLevel}%
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,7 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Box } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Bin {
   id: string;
@@ -16,6 +28,9 @@ interface BinGridProps {
 }
 
 const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
+  const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const getBinColor = (bin: Bin) => {
     if (bin.status === 'maintenance') return 'bg-red-100 border-red-300';
     if (bin.status === 'full') return 'bg-red-100 border-red-300';
@@ -40,6 +55,33 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
     return Math.round((bin.currentCount / bin.capacity) * 100);
   };
 
+  const handleBinClick = (bin: Bin) => {
+    setSelectedBin(bin);
+    setIsDialogOpen(true);
+  };
+
+  const handleToggleBin = async () => {
+    if (!selectedBin) return;
+
+    const newStatus = selectedBin.status === 'maintenance' ? 'available' : 'maintenance';
+    
+    try {
+      const { error } = await supabase
+        .from('bins')
+        .update({ status: newStatus })
+        .eq('id', selectedBin.id);
+
+      if (error) {
+        console.error('Error updating bin status:', error);
+      }
+    } catch (error) {
+      console.error('Error toggling bin:', error);
+    }
+
+    setIsDialogOpen(false);
+    setSelectedBin(null);
+  };
+
   return (
     <Card className="p-3">
       <h3 className="text-sm font-semibold text-gray-800 mb-3">Bin Status Grid</h3>
@@ -48,7 +90,8 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
         {bins.map(bin => (
           <div
             key={bin.id}
-            className={`p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${getBinColor(bin)}`}
+            className={`p-2 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${getBinColor(bin)}`}
+            onClick={() => handleBinClick(bin)}
           >
             <div className="flex flex-col items-center space-y-1">
               <Box className={`w-4 h-4 ${getBinTextColor(bin)}`} />
@@ -97,6 +140,27 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
           <span>Full/Maint</span>
         </div>
       </div>
+
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Toggle Bin Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedBin && (
+                <>
+                  Are you sure you want to {selectedBin.status === 'maintenance' ? 'enable' : 'disable'} bin {selectedBin.location}?
+                  <br />
+                  This will change its status from <strong>{selectedBin.status}</strong> to <strong>{selectedBin.status === 'maintenance' ? 'available' : 'maintenance'}</strong>.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedBin(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleBin}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

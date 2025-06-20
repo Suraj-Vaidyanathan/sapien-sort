@@ -7,6 +7,7 @@ export type SystemState = 'stopped' | 'running' | 'paused';
 export const useSystemControl = () => {
   const [systemState, setSystemState] = useState<SystemState>('stopped');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const packageIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const simulateSystemUpdates = async () => {
     try {
@@ -127,16 +128,37 @@ export const useSystemControl = () => {
     }
   };
 
+  const generateNewPackage = async () => {
+    try {
+      console.log('Generating new package...');
+      const { error } = await supabase.rpc('create_random_package');
+      if (error) {
+        console.error('Error creating package:', error);
+      } else {
+        console.log('New package created successfully');
+      }
+    } catch (error) {
+      console.error('Error generating package:', error);
+    }
+  };
+
   const startSystem = () => {
     console.log('System started - beginning real-time simulation');
     setSystemState('running');
     
+    // Clear existing intervals
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
+    if (packageIntervalRef.current) {
+      clearInterval(packageIntervalRef.current);
+    }
     
     // Run simulation every 5 seconds
-    intervalRef.current = setInterval(simulateSystemUpdates, 5000);
+    intervalRef.current = setInterval(simulateSystem Updates, 5000);
+    
+    // Generate new packages every 8 seconds
+    packageIntervalRef.current = setInterval(generateNewPackage, 8000);
     
     // Run one update immediately
     simulateSystemUpdates();
@@ -150,15 +172,26 @@ export const useSystemControl = () => {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+    
+    if (packageIntervalRef.current) {
+      clearInterval(packageIntervalRef.current);
+      packageIntervalRef.current = null;
+    }
   };
 
   const emergencyStop = async () => {
     console.log('Emergency stop activated - stopping all operations');
     setSystemState('stopped');
     
+    // Clear intervals
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
+    }
+    
+    if (packageIntervalRef.current) {
+      clearInterval(packageIntervalRef.current);
+      packageIntervalRef.current = null;
     }
 
     try {
@@ -187,6 +220,9 @@ export const useSystemControl = () => {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+      }
+      if (packageIntervalRef.current) {
+        clearInterval(packageIntervalRef.current);
       }
     };
   }, []);
