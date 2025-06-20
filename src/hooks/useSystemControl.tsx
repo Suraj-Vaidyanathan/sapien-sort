@@ -155,7 +155,7 @@ export const useSystemControl = () => {
     }
     
     // Run simulation every 5 seconds
-    intervalRef.current = setInterval(simulateSystem Updates, 5000);
+    intervalRef.current = setInterval(simulateSystemUpdates, 5000);
     
     // Generate new packages every 8 seconds
     packageIntervalRef.current = setInterval(generateNewPackage, 8000);
