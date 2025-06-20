@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Package, Bot, MapPin, Clock } from 'lucide-react';
+import AllPackagesDialog from './AllPackagesDialog';
 
 interface PackageInfo {
   uid: string;
@@ -27,7 +28,10 @@ const PackageTable: React.FC<PackageTableProps> = ({ packages }) => {
 
   return (
     <Card className="p-3">
-      <h3 className="text-sm font-semibold text-gray-800 mb-3">Package Information</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-800">Package Information</h3>
+        <AllPackagesDialog packages={packages} />
+      </div>
       
       <div className="overflow-x-auto">
         <table className="min-w-full">

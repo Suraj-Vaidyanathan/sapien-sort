@@ -32,6 +32,16 @@ export const useSystemControl = () => {
             if (newBatteryLevel <= 15) {
               newStatus = 'charging';
               newRow = 4; // charging station
+              
+              // Unassign any packages if robot goes to charging
+              await supabase
+                .from('packages')
+                .update({ 
+                  bot_assigned: null,
+                  status: 'pending'
+                })
+                .eq('bot_assigned', robot.name)
+                .eq('status', 'processing');
             }
           } else if (robot.status === 'charging') {
             // Charge the battery
@@ -56,7 +66,7 @@ export const useSystemControl = () => {
       }
 
       // Assign pending packages to available robots
-      if (Math.random() > 0.5) {
+      if (Math.random() > 0.3) { // Increased chance of assignment
         const { data: pendingPackages } = await supabase
           .from('packages')
           .select('*')
@@ -85,7 +95,7 @@ export const useSystemControl = () => {
       }
 
       // Complete packages randomly
-      if (Math.random() > 0.6) {
+      if (Math.random() > 0.5) { // Increased completion rate
         const { data: processingPackages } = await supabase
           .from('packages')
           .select('*')

@@ -17,7 +17,7 @@ export const useSupabaseRealtimeData = () => {
   const fetchInitialData = async () => {
     try {
       const [robotsResponse, packagesResponse, binsResponse] = await Promise.all([
-        supabase.from('robots').select('*'),
+        supabase.from('robots').select('*').order('name'),
         supabase.from('packages').select('*').order('timestamp', { ascending: false }),
         supabase.from('bins').select('*').order('location')
       ]);
@@ -47,7 +47,7 @@ export const useSupabaseRealtimeData = () => {
       }, (payload) => {
         console.log('Robot change:', payload);
         if (payload.eventType === 'INSERT') {
-          setRobots(prev => [...prev, payload.new as Robot]);
+          setRobots(prev => [...prev, payload.new as Robot].sort((a, b) => a.name.localeCompare(b.name)));
         } else if (payload.eventType === 'UPDATE') {
           setRobots(prev => prev.map(robot => 
             robot.id === payload.new.id ? payload.new as Robot : robot
@@ -100,20 +100,10 @@ export const useSupabaseRealtimeData = () => {
       })
       .subscribe();
 
-    // Simulate new packages being created periodically
-    const packageInterval = setInterval(async () => {
-      try {
-        await supabase.rpc('create_random_package');
-      } catch (error) {
-        console.error('Error creating random package:', error);
-      }
-    }, 15000); // Create new package every 15 seconds
-
     return () => {
       supabase.removeChannel(robotsChannel);
       supabase.removeChannel(packagesChannel);
       supabase.removeChannel(binsChannel);
-      clearInterval(packageInterval);
     };
   }, []);
 
