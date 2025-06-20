@@ -113,11 +113,17 @@ export const useSystemControl = () => {
           const change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
           const newCount = Math.max(0, Math.min(randomBin.capacity, randomBin.current_count + change));
           
+          // Only update status if bin is not in maintenance
+          let newStatus = randomBin.status;
+          if (randomBin.status !== 'maintenance') {
+            newStatus = newCount >= randomBin.capacity ? 'full' : 'available';
+          }
+          
           await supabase
             .from('bins')
             .update({ 
               current_count: newCount,
-              status: newCount >= randomBin.capacity ? 'full' : 'available'
+              status: newStatus
             })
             .eq('id', randomBin.id);
         }
@@ -142,7 +148,7 @@ export const useSystemControl = () => {
     }
   };
 
-  const startSystem = () => {
+  const startSystem = async () => {
     console.log('System started - beginning real-time simulation');
     setSystemState('running');
     
@@ -152,6 +158,18 @@ export const useSystemControl = () => {
     }
     if (packageIntervalRef.current) {
       clearInterval(packageIntervalRef.current);
+    }
+    
+    try {
+      // Reactivate all idle robots (those that were stopped by emergency stop)
+      await supabase
+        .from('robots')
+        .update({ status: 'active' })
+        .eq('status', 'idle');
+      
+      console.log('Reactivated idle robots');
+    } catch (error) {
+      console.error('Error reactivating robots:', error);
     }
     
     // Run simulation every 5 seconds

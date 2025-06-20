@@ -32,27 +32,66 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const getBinColor = (bin: Bin) => {
+    // Maintenance bins are always red
     if (bin.status === 'maintenance') return 'bg-red-100 border-red-300';
-    if (bin.status === 'full') return 'bg-red-100 border-red-300';
     
+    // For available bins, check fill percentage
     const fillPercentage = (bin.currentCount / bin.capacity) * 100;
+    
+    // Full bins (at capacity) are red
+    if (bin.currentCount >= bin.capacity) return 'bg-red-100 border-red-300';
+    
+    // Nearly full bins (90%+) are yellow
     if (fillPercentage >= 90) return 'bg-yellow-100 border-yellow-300';
+    
+    // Filling bins (50%+) are blue
     if (fillPercentage >= 50) return 'bg-blue-100 border-blue-300';
+    
+    // Available bins with low fill are green
     return 'bg-green-100 border-green-300';
   };
 
   const getBinTextColor = (bin: Bin) => {
+    // Maintenance bins are always red text
     if (bin.status === 'maintenance') return 'text-red-700';
-    if (bin.status === 'full') return 'text-red-700';
     
+    // For available bins, check fill percentage
     const fillPercentage = (bin.currentCount / bin.capacity) * 100;
+    
+    // Full bins (at capacity) are red text
+    if (bin.currentCount >= bin.capacity) return 'text-red-700';
+    
+    // Nearly full bins (90%+) are yellow text
     if (fillPercentage >= 90) return 'text-yellow-700';
+    
+    // Filling bins (50%+) are blue text
     if (fillPercentage >= 50) return 'text-blue-700';
+    
+    // Available bins with low fill are green text
     return 'text-green-700';
   };
 
   const getFillPercentage = (bin: Bin) => {
     return Math.round((bin.currentCount / bin.capacity) * 100);
+  };
+
+  const getProgressBarColor = (bin: Bin) => {
+    // Maintenance bins have red progress bar
+    if (bin.status === 'maintenance') return 'bg-red-500';
+    
+    const fillPercentage = getFillPercentage(bin);
+    
+    // Full bins (at capacity) are red
+    if (bin.currentCount >= bin.capacity) return 'bg-red-500';
+    
+    // Nearly full bins (90%+) are yellow
+    if (fillPercentage >= 90) return 'bg-yellow-500';
+    
+    // Filling bins (50%+) are blue
+    if (fillPercentage >= 50) return 'bg-blue-500';
+    
+    // Available bins with low fill are green
+    return 'bg-green-500';
   };
 
   const handleBinClick = (bin: Bin) => {
@@ -66,9 +105,15 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
     const newStatus = selectedBin.status === 'maintenance' ? 'available' : 'maintenance';
     
     try {
+      // When switching from maintenance to available, check if bin should be marked as full
+      let finalStatus = newStatus;
+      if (newStatus === 'available' && selectedBin.currentCount >= selectedBin.capacity) {
+        finalStatus = 'full';
+      }
+
       const { error } = await supabase
         .from('bins')
-        .update({ status: newStatus })
+        .update({ status: finalStatus })
         .eq('id', selectedBin.id);
 
       if (error) {
@@ -108,12 +153,7 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
               
               <div className="w-full bg-gray-200 rounded-full h-1">
                 <div
-                  className={`h-1 rounded-full transition-all duration-300 ${
-                    bin.status === 'maintenance' ? 'bg-red-500' :
-                    bin.status === 'full' ? 'bg-red-500' :
-                    getFillPercentage(bin) >= 90 ? 'bg-yellow-500' :
-                    getFillPercentage(bin) >= 50 ? 'bg-blue-500' : 'bg-green-500'
-                  }`}
+                  className={`h-1 rounded-full transition-all duration-300 ${getProgressBarColor(bin)}`}
                   style={{ width: `${Math.min(getFillPercentage(bin), 100)}%` }}
                 />
               </div>
