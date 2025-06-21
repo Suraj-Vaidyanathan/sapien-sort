@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Box } from 'lucide-react';
@@ -68,7 +67,7 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
   };
 
   const getStatusLabel = (bin: Bin) => {
-    if (bin.status === 'maintenance') return 'MAINT';
+    if (bin.status === 'maintenance') return 'Full';
     
     const fillPercentage = getFillPercentage(bin);
     
@@ -179,7 +178,6 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                   checked={bin.status !== 'maintenance'}
                   onCheckedChange={(checked) => handleSwitchToggle(bin, checked)}
                   onClick={(e) => e.stopPropagation()}
-                  size="sm"
                 />
               </div>
             </div>
