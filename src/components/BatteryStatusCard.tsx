@@ -54,15 +54,10 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BatteryIcon className={`w-4 h-4 ${getBatteryColor(robot.batteryLevel, robot.status)}`} />
-                  <span className="font-medium text-gray-800 text-xs">{robot.name}</span>
+                  <span className="font-medium text-gray-800 text-sm">{robot.name}</span>
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-600">Current</div>
-                    <div className="text-xs font-medium text-gray-800">{currentValue}</div>
-                  </div>
-                  
                   <div className="flex items-center space-x-2">
                     <div className="w-16 bg-gray-200 rounded-full h-1.5">
                       <div
@@ -73,9 +68,14 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
                         style={{ width: `${robot.batteryLevel}%` }}
                       />
                     </div>
-                    <span className={`text-xs font-medium ${getBatteryColor(robot.batteryLevel, robot.status)}`}>
+                    <span className={`text-sm font-medium ${getBatteryColor(robot.batteryLevel, robot.status)}`}>
                       {robot.batteryLevel}%
                     </span>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-xs text-gray-600">Current</div>
+                    <div className="text-sm font-medium text-gray-800">{currentValue}</div>
                   </div>
                 </div>
               </div>

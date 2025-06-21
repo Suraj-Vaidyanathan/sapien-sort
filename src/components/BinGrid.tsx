@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Box } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,44 +31,25 @@ interface BinGridProps {
 const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
   const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingToggle, setPendingToggle] = useState<{ bin: Bin; newEnabled: boolean } | null>(null);
 
   const getBinColor = (bin: Bin) => {
-    // Maintenance bins are always red
     if (bin.status === 'maintenance') return 'bg-red-100 border-red-300';
     
-    // For available bins, check fill percentage
     const fillPercentage = (bin.currentCount / bin.capacity) * 100;
     
-    // Full bins (at capacity) are red
     if (bin.currentCount >= bin.capacity) return 'bg-red-100 border-red-300';
-    
-    // Nearly full bins (90%+) are yellow
-    if (fillPercentage >= 90) return 'bg-yellow-100 border-yellow-300';
-    
-    // Filling bins (50%+) are blue
     if (fillPercentage >= 50) return 'bg-blue-100 border-blue-300';
-    
-    // Available bins with low fill are green
     return 'bg-green-100 border-green-300';
   };
 
   const getBinTextColor = (bin: Bin) => {
-    // Maintenance bins are always red text
     if (bin.status === 'maintenance') return 'text-red-700';
     
-    // For available bins, check fill percentage
     const fillPercentage = (bin.currentCount / bin.capacity) * 100;
     
-    // Full bins (at capacity) are red text
     if (bin.currentCount >= bin.capacity) return 'text-red-700';
-    
-    // Nearly full bins (90%+) are yellow text
-    if (fillPercentage >= 90) return 'text-yellow-700';
-    
-    // Filling bins (50%+) are blue text
     if (fillPercentage >= 50) return 'text-blue-700';
-    
-    // Available bins with low fill are green text
     return 'text-green-700';
   };
 
@@ -76,22 +58,23 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
   };
 
   const getProgressBarColor = (bin: Bin) => {
-    // Maintenance bins have red progress bar
     if (bin.status === 'maintenance') return 'bg-red-500';
     
     const fillPercentage = getFillPercentage(bin);
     
-    // Full bins (at capacity) are red
     if (bin.currentCount >= bin.capacity) return 'bg-red-500';
-    
-    // Nearly full bins (90%+) are yellow
-    if (fillPercentage >= 90) return 'bg-yellow-500';
-    
-    // Filling bins (50%+) are blue
     if (fillPercentage >= 50) return 'bg-blue-500';
-    
-    // Available bins with low fill are green
     return 'bg-green-500';
+  };
+
+  const getStatusLabel = (bin: Bin) => {
+    if (bin.status === 'maintenance') return 'MAINT';
+    
+    const fillPercentage = getFillPercentage(bin);
+    
+    if (bin.currentCount >= bin.capacity) return 'Full';
+    if (fillPercentage >= 50) return 'Filling';
+    return 'Available';
   };
 
   const handleBinClick = (bin: Bin) => {
@@ -105,7 +88,6 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
     const newStatus = selectedBin.status === 'maintenance' ? 'available' : 'maintenance';
     
     try {
-      // When switching from maintenance to available, check if bin should be marked as full
       let finalStatus = newStatus;
       if (newStatus === 'available' && selectedBin.currentCount >= selectedBin.capacity) {
         finalStatus = 'full';
@@ -125,6 +107,37 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
 
     setIsDialogOpen(false);
     setSelectedBin(null);
+  };
+
+  const handleSwitchToggle = (bin: Bin, newEnabled: boolean) => {
+    setPendingToggle({ bin, newEnabled });
+  };
+
+  const confirmSwitchToggle = async () => {
+    if (!pendingToggle) return;
+
+    const { bin, newEnabled } = pendingToggle;
+    const newStatus = newEnabled ? 'available' : 'maintenance';
+    
+    try {
+      let finalStatus = newStatus;
+      if (newStatus === 'available' && bin.currentCount >= bin.capacity) {
+        finalStatus = 'full';
+      }
+
+      const { error } = await supabase
+        .from('bins')
+        .update({ status: finalStatus })
+        .eq('id', bin.id);
+
+      if (error) {
+        console.error('Error updating bin status:', error);
+      }
+    } catch (error) {
+      console.error('Error toggling bin:', error);
+    }
+
+    setPendingToggle(null);
   };
 
   return (
@@ -147,7 +160,7 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                   {bin.currentCount}/{bin.capacity}
                 </div>
                 <div className={`text-xs ${getBinTextColor(bin)}`}>
-                  {bin.status === 'maintenance' ? 'MAINT' : `${getFillPercentage(bin)}%`}
+                  {getStatusLabel(bin)}
                 </div>
               </div>
               
@@ -157,12 +170,24 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                   style={{ width: `${Math.min(getFillPercentage(bin), 100)}%` }}
                 />
               </div>
+
+              <div className="flex items-center space-x-1 pt-1">
+                <span className="text-xs text-gray-600">
+                  {bin.status === 'maintenance' ? 'Disabled' : 'Enabled'}
+                </span>
+                <Switch
+                  checked={bin.status !== 'maintenance'}
+                  onCheckedChange={(checked) => handleSwitchToggle(bin, checked)}
+                  onClick={(e) => e.stopPropagation()}
+                  size="sm"
+                />
+              </div>
             </div>
           </div>
         ))}
       </div>
       
-      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+      <div className="mt-3 flex flex-wrap gap-2 text-sm">
         <div className="flex items-center space-x-1">
           <div className="w-2 h-2 rounded-full bg-green-500" />
           <span>Available</span>
@@ -172,12 +197,8 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
           <span>Filling</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-2 h-2 rounded-full bg-yellow-500" />
-          <span>Nearly Full</span>
-        </div>
-        <div className="flex items-center space-x-1">
           <div className="w-2 h-2 rounded-full bg-red-500" />
-          <span>Full/Maint</span>
+          <span>Full</span>
         </div>
       </div>
 
@@ -190,7 +211,7 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                 <>
                   Are you sure you want to {selectedBin.status === 'maintenance' ? 'enable' : 'disable'} bin {selectedBin.location}?
                   <br />
-                  This will change its status from <strong>{selectedBin.status}</strong> to <strong>{selectedBin.status === 'maintenance' ? 'available' : 'maintenance'}</strong>.
+                  This will change its status from <strong>{selectedBin.status === 'maintenance' ? 'disabled' : 'enabled'}</strong> to <strong>{selectedBin.status === 'maintenance' ? 'enabled' : 'disabled'}</strong>.
                 </>
               )}
             </AlertDialogDescription>
@@ -198,6 +219,25 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setSelectedBin(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleToggleBin}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingToggle} onOpenChange={() => setPendingToggle(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Toggle Bin Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingToggle && (
+                <>
+                  Are you sure you want to {pendingToggle.newEnabled ? 'enable' : 'disable'} bin {pendingToggle.bin.location}?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingToggle(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSwitchToggle}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
