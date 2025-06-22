@@ -5,9 +5,9 @@ import { useSystemControl } from '@/hooks/useSystemControl';
 import SystemOverviewCard from '@/components/SystemOverviewCard';
 import InfeedOverviewCard from '@/components/InfeedOverviewCard';
 import CurrentPackageCard from '@/components/CurrentPackageCard';
-import RobotVisualization from '@/components/RobotVisualization';
+import RobotPositionTracker from '@/components/RobotPositionTracker';
 import SwitchStatusCard from '@/components/SwitchStatusCard';
-import BatteryStatusCard from '@/components/BatteryStatusCard';
+import BatteryManagement from '@/components/BatteryManagement';
 import PackageTable from '@/components/PackageTable';
 import BinGrid from '@/components/BinGrid';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,6 @@ const Overview = () => {
     );
   }
 
-  // System overview data with real-time information
   const systemOverview = {
     botActive: `${activeBotCount}/${totalBotCount}`,
     cvRunning: '4/4',
@@ -51,7 +50,6 @@ const Overview = () => {
     warnings: activeBotCount < totalBotCount ? 'Warning' : 'Healthy',
   };
 
-  // Infeed overview data with dynamic status based on system state
   const infeedOverview = {
     cvStatus: systemState === 'running' ? 'Online' : systemState === 'paused' ? 'Warning' : 'Offline',
     cvSpeed: systemState === 'running' ? '1.2 m/s' : '0.0 m/s',
@@ -61,7 +59,6 @@ const Overview = () => {
     mergerSpeed: systemState === 'running' ? '0.8 m/s' : '0.0 m/s',
   };
 
-  // Mock switches data (since we don't have real switch data in DB yet)
   const mockSwitches = {
     0: {
       entry: [
@@ -115,12 +112,11 @@ const Overview = () => {
     },
   };
 
-  // Transform current package data - fix property names
   const transformedCurrentPackage = currentPackage ? {
     packageId: currentPackage.packageId,
     destination: currentPackage.destination,
     assignedBot: currentPackage.assignedBot,
-    estimatedTime: '2m 30s', // Mock value
+    estimatedTime: '2m 30s',
     currentRow: robots.find(r => r.name === currentPackage.assignedBot)?.currentRow || 0
   } : {
     packageId: null,
@@ -175,13 +171,13 @@ const Overview = () => {
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
           <CurrentPackageCard {...transformedCurrentPackage} />
-          <BatteryStatusCard robots={robots} />
+          <BatteryManagement robots={robots} />
         </div>
 
         {/* Middle row - Robot Visualization and Switch Status */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-1 mb-1">
           <div className="xl:col-span-2">
-            <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
+            <RobotPositionTracker robots={robots} totalRows={TOTAL_ROWS} />
           </div>
           <div className="xl:col-span-1">
             <SwitchStatusCard totalRows={TOTAL_ROWS} switches={mockSwitches} />

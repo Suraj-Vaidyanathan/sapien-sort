@@ -33,7 +33,6 @@ export const useSupabaseRealtimeData = () => {
     { id: 'D3', location: 'D3', capacity: 50, currentCount: 28, status: 'available' as const },
   ]);
 
-  // Fetch initial data
   const fetchInitialData = async () => {
     try {
       const [botsResponse, packagesResponse, botStatusesResponse, packageStatusesResponse, sectorsResponse] = await Promise.all([
@@ -57,11 +56,9 @@ export const useSupabaseRealtimeData = () => {
     }
   };
 
-  // Set up real-time subscriptions
   useEffect(() => {
     fetchInitialData();
 
-    // Subscribe to bots changes
     const botsChannel = supabase
       .channel('bots-changes')
       .on('postgres_changes', {
@@ -82,7 +79,6 @@ export const useSupabaseRealtimeData = () => {
       })
       .subscribe();
 
-    // Subscribe to packages changes
     const packagesChannel = supabase
       .channel('packages-changes')
       .on('postgres_changes', {
@@ -109,23 +105,22 @@ export const useSupabaseRealtimeData = () => {
     };
   }, []);
 
-  // Helper function to get status name by ID
   const getStatusName = (statusId: number | null, statuses: BotStatus[] | PackageStatus[]) => {
     const status = statuses.find(s => s.status_id === statusId);
     return status?.status_name || 'unknown';
   };
 
-  // Get current package (most recent processing package)
   const currentPackage = packages.find(pkg => {
     const statusName = getStatusName(pkg.status_id, packageStatuses);
     return statusName === 'processing' || statusName === 'assigned';
   }) || null;
 
-  // System status calculation
+  // Fix active bot count calculation
   const activeBotCount = bots.filter(bot => {
     const statusName = getStatusName(bot.status_id, botStatuses);
     return statusName === 'active' || statusName === 'running';
   }).length;
+  
   const totalBotCount = bots.length;
   
   const systemStatus = {
@@ -138,7 +133,6 @@ export const useSupabaseRealtimeData = () => {
     uptime: '23h 45m',
   };
 
-  // Transform data to match existing interfaces
   const transformedRobots = bots.map(bot => {
     const statusName = getStatusName(bot.status_id, botStatuses);
     return {

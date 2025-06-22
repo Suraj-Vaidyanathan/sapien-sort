@@ -31,7 +31,29 @@ export const useSystemControl = () => {
 
           const currentStatus = statusData?.status_name || 'idle';
 
-          if (currentStatus === 'active' || currentStatus === 'running') {
+          // Handle battery level 0 - force charging
+          if (newBatteryLevel <= 0) {
+            const { data: chargingStatus } = await supabase
+              .from('bot_statuses')
+              .select('status_id')
+              .eq('status_name', 'charging')
+              .single();
+            
+            if (chargingStatus) {
+              newStatusId = chargingStatus.status_id;
+              newSectorId = 4; // charging station sector
+              newBatteryLevel = 1; // Set to 1% to start charging
+              
+              // Unassign any packages if robot goes to charging
+              await supabase
+                .from('packages')
+                .update({ 
+                  assigned_bot_id: null,
+                  status_id: 1 // assuming 1 is pending status
+                })
+                .eq('assigned_bot_id', bot.bot_id);
+            }
+          } else if (currentStatus === 'active' || currentStatus === 'running') {
             // Drain battery for active robots
             newBatteryLevel = Math.max(0, newBatteryLevel - (Math.random() * 3 + 2));
             // Move robots around randomly
@@ -39,7 +61,6 @@ export const useSystemControl = () => {
             
             // If battery is low, send to charging
             if (newBatteryLevel <= 15) {
-              // Get charging status ID
               const { data: chargingStatus } = await supabase
                 .from('bot_statuses')
                 .select('status_id')
@@ -67,7 +88,6 @@ export const useSystemControl = () => {
             
             // If battery is full, make active again
             if (newBatteryLevel >= 95) {
-              // Get active status ID
               const { data: activeStatus } = await supabase
                 .from('bot_statuses')
                 .select('status_id')
@@ -93,7 +113,6 @@ export const useSystemControl = () => {
 
       // Assign pending packages to available robots
       if (Math.random() > 0.3) {
-        // Get pending status ID
         const { data: pendingStatus } = await supabase
           .from('package_statuses')
           .select('status_id')
@@ -108,7 +127,6 @@ export const useSystemControl = () => {
             .is('assigned_bot_id', null)
             .limit(1);
 
-          // Get active bot status IDs
           const { data: activeStatuses } = await supabase
             .from('bot_statuses')
             .select('status_id')
@@ -127,7 +145,6 @@ export const useSystemControl = () => {
               const randomBot = availableBots[Math.floor(Math.random() * availableBots.length)];
               console.log(`Assigning package ${pendingPackages[0].package_id} to robot ${randomBot.bot_id}`);
               
-              // Get processing status ID
               const { data: processingStatus } = await supabase
                 .from('package_statuses')
                 .select('status_id')
@@ -151,7 +168,6 @@ export const useSystemControl = () => {
 
       // Complete packages randomly
       if (Math.random() > 0.5) {
-        // Get processing status ID
         const { data: processingStatus } = await supabase
           .from('package_statuses')
           .select('status_id')
@@ -168,7 +184,6 @@ export const useSystemControl = () => {
           if (processingPackages && processingPackages.length > 0) {
             console.log(`Completing package ${processingPackages[0].package_id}`);
             
-            // Get completed status ID
             const { data: completedStatus } = await supabase
               .from('package_statuses')
               .select('status_id')
@@ -198,17 +213,14 @@ export const useSystemControl = () => {
     try {
       console.log('Generating new package...');
       
-      // Generate a random package ID
       const packageId = `PKG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
-      // Get pending status ID
       const { data: pendingStatus } = await supabase
         .from('package_statuses')
         .select('status_id')
         .eq('status_name', 'pending')
         .single();
 
-      // Get random destination sector
       const { data: sectors } = await supabase
         .from('sectors')
         .select('sector_id')
@@ -244,7 +256,6 @@ export const useSystemControl = () => {
     console.log('System started - beginning real-time simulation');
     setSystemState('running');
     
-    // Clear existing intervals
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
@@ -253,14 +264,12 @@ export const useSystemControl = () => {
     }
     
     try {
-      // Get idle status ID
       const { data: idleStatus } = await supabase
         .from('bot_statuses')
         .select('status_id')
         .eq('status_name', 'idle')
         .single();
 
-      // Get active status ID
       const { data: activeStatus } = await supabase
         .from('bot_statuses')
         .select('status_id')
@@ -271,9 +280,10 @@ export const useSystemControl = () => {
         await supabase
           .from('bots')
           .update({ status_id: activeStatus.status_id })
-          .eq('status_id', idleStatus.status_id);
+          .eq('status_id', idleStatus.status_id)
+          .gt('battery_level', 15); // Only activate bots with enough battery
         
-        console.log('Reactivated idle robots');
+        console.log('Reactivated idle robots with sufficient battery');
       }
     } catch (error) {
       console.error('Error reactivating robots:', error);
@@ -282,8 +292,8 @@ export const useSystemControl = () => {
     // Run simulation every 5 seconds
     intervalRef.current = setInterval(simulateSystemUpdates, 5000);
     
-    // Generate new packages every 8 seconds
-    packageIntervalRef.current = setInterval(generateNewPackage, 8000);
+    // Generate new packages every 10 seconds
+    packageIntervalRef.current = setInterval(generateNewPackage, 10000);
     
     // Run one update immediately
     simulateSystemUpdates();
@@ -308,7 +318,6 @@ export const useSystemControl = () => {
     console.log('Emergency stop activated - stopping all operations');
     setSystemState('stopped');
     
-    // Clear intervals
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -320,7 +329,6 @@ export const useSystemControl = () => {
     }
 
     try {
-      // Get status IDs
       const { data: chargingStatus } = await supabase
         .from('bot_statuses')
         .select('status_id')
@@ -346,7 +354,6 @@ export const useSystemControl = () => {
         .single();
 
       if (chargingStatus && idleStatus) {
-        // Stop all robots (except those charging)
         await supabase
           .from('bots')
           .update({ status_id: idleStatus.status_id })
@@ -354,7 +361,6 @@ export const useSystemControl = () => {
       }
 
       if (pendingStatus && processingStatus) {
-        // Unassign all processing packages
         await supabase
           .from('packages')
           .update({ 

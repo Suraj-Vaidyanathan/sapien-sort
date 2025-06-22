@@ -10,11 +10,11 @@ interface Robot {
   status: 'active' | 'idle' | 'charging' | 'error';
 }
 
-interface BatteryStatusCardProps {
+interface BatteryManagementProps {
   robots: Robot[];
 }
 
-const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
+const BatteryManagement: React.FC<BatteryManagementProps> = ({ robots }) => {
   const getBatteryIcon = (level: number, status: string) => {
     if (status === 'charging') return BatteryCharging;
     if (level <= 20) return BatteryLow;
@@ -87,4 +87,4 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ robots }) => {
   );
 };
 
-export default BatteryStatusCard;
+export default BatteryManagement;

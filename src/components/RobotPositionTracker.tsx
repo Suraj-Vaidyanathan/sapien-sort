@@ -11,12 +11,12 @@ interface Robot {
   batteryLevel: number;
 }
 
-interface RobotVisualizationProps {
+interface RobotPositionTrackerProps {
   robots: Robot[];
   totalRows: number;
 }
 
-const RobotVisualization: React.FC<RobotVisualizationProps> = ({ robots, totalRows }) => {
+const RobotPositionTracker: React.FC<RobotPositionTrackerProps> = ({ robots, totalRows }) => {
   const getRowLabel = (rowIndex: number) => {
     return `Layer ${rowIndex}`;
   };
@@ -94,4 +94,4 @@ const RobotVisualization: React.FC<RobotVisualizationProps> = ({ robots, totalRo
   );
 };
 
-export default RobotVisualization;
+export default RobotPositionTracker;
