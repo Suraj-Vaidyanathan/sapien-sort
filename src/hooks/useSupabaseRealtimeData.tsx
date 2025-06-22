@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
@@ -163,7 +162,7 @@ export const useSupabaseRealtimeData = () => {
       status: (statusName === 'active' || statusName === 'running' ? 'active' : 
                statusName === 'idle' ? 'idle' :
                statusName === 'charging' ? 'charging' : 'error') as 'active' | 'idle' | 'charging' | 'error',
-      batteryLevel: bot.battery_level || 0
+      batteryLevel: Math.round(bot.battery_level || 0)
     };
   });
 

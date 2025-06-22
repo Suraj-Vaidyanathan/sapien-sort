@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,7 +12,7 @@ export const useSystemControl = () => {
     try {
       console.log('Running system simulation update...');
       
-      // Update robot positions and battery levels using the correct table name "bots"
+      // Update robot positions and battery levels
       const { data: bots } = await supabase.from('bots').select('*');
       
       if (bots) {
@@ -224,11 +223,11 @@ export const useSystemControl = () => {
       const { data: sectors } = await supabase
         .from('sectors')
         .select('sector_id')
-        .limit(5);
+        .in('sector_id', [6, 7]); // Output zones
 
       const randomSector = sectors && sectors.length > 0 
         ? sectors[Math.floor(Math.random() * sectors.length)].sector_id 
-        : 1;
+        : 6;
 
       if (pendingStatus) {
         const { error } = await supabase
