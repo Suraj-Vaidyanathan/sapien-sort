@@ -35,6 +35,7 @@ export const useSupabaseRealtimeData = () => {
 
   const fetchInitialData = async () => {
     try {
+      console.log('Fetching initial data...');
       const [botsResponse, packagesResponse, botStatusesResponse, packageStatusesResponse, sectorsResponse] = await Promise.all([
         supabase.from('bots').select('*').order('bot_id'),
         supabase.from('packages').select('*').order('scanned_at', { ascending: false }),
@@ -43,8 +44,20 @@ export const useSupabaseRealtimeData = () => {
         supabase.from('sectors').select('*').order('sector_id')
       ]);
 
-      if (botsResponse.data) setBots(botsResponse.data);
-      if (packagesResponse.data) setPackages(packagesResponse.data);
+      if (botsResponse.error) {
+        console.error('Error fetching bots:', botsResponse.error);
+      } else {
+        console.log('Fetched bots:', botsResponse.data);
+        setBots(botsResponse.data || []);
+      }
+
+      if (packagesResponse.error) {
+        console.error('Error fetching packages:', packagesResponse.error);
+      } else {
+        console.log('Fetched packages:', packagesResponse.data);
+        setPackages(packagesResponse.data || []);
+      }
+
       if (botStatusesResponse.data) setBotStatuses(botStatusesResponse.data);
       if (packageStatusesResponse.data) setPackageStatuses(packageStatusesResponse.data);
       if (sectorsResponse.data) setSectors(sectorsResponse.data);
@@ -59,47 +72,55 @@ export const useSupabaseRealtimeData = () => {
   useEffect(() => {
     fetchInitialData();
 
+    // Set up real-time subscriptions
+    console.log('Setting up real-time subscriptions...');
+
     const botsChannel = supabase
-      .channel('bots-changes')
+      .channel('public:bots')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'bots'
       }, (payload) => {
-        console.log('Bot change:', payload);
+        console.log('Bot change received:', payload);
         if (payload.eventType === 'INSERT') {
           setBots(prev => [...prev, payload.new as Bot].sort((a, b) => a.bot_id.localeCompare(b.bot_id)));
         } else if (payload.eventType === 'UPDATE') {
           setBots(prev => prev.map(bot => 
-            bot.bot_id === payload.new.bot_id ? payload.new as Bot : bot
+            bot.bot_id === (payload.new as Bot).bot_id ? payload.new as Bot : bot
           ));
         } else if (payload.eventType === 'DELETE') {
-          setBots(prev => prev.filter(bot => bot.bot_id !== payload.old.bot_id));
+          setBots(prev => prev.filter(bot => bot.bot_id !== (payload.old as Bot).bot_id));
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Bots channel status:', status);
+      });
 
     const packagesChannel = supabase
-      .channel('packages-changes')
+      .channel('public:packages')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'packages'
       }, (payload) => {
-        console.log('Package change:', payload);
+        console.log('Package change received:', payload);
         if (payload.eventType === 'INSERT') {
           setPackages(prev => [payload.new as Package, ...prev]);
         } else if (payload.eventType === 'UPDATE') {
           setPackages(prev => prev.map(pkg => 
-            pkg.package_id === payload.new.package_id ? payload.new as Package : pkg
+            pkg.package_id === (payload.new as Package).package_id ? payload.new as Package : pkg
           ));
         } else if (payload.eventType === 'DELETE') {
-          setPackages(prev => prev.filter(pkg => pkg.package_id !== payload.old.package_id));
+          setPackages(prev => prev.filter(pkg => pkg.package_id !== (payload.old as Package).package_id));
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Packages channel status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscriptions...');
       supabase.removeChannel(botsChannel);
       supabase.removeChannel(packagesChannel);
     };
