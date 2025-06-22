@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Box } from 'lucide-react';
@@ -11,9 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Bin {
   id: string;
@@ -28,8 +27,7 @@ interface BinGridProps {
 }
 
 const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
-  const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [localBins, setLocalBins] = useState(bins);
   const [pendingToggle, setPendingToggle] = useState<{ bin: Bin; newEnabled: boolean } | null>(null);
 
   const getBinColor = (bin: Bin) => {
@@ -66,46 +64,12 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
     return 'bg-green-500';
   };
 
-  const getStatusLabel = (bin: Bin) => {
-    if (bin.status === 'maintenance') return 'Full';
-    
+  const getFillStatusLabel = (bin: Bin) => {
     const fillPercentage = getFillPercentage(bin);
     
     if (bin.currentCount >= bin.capacity) return 'Full';
     if (fillPercentage >= 50) return 'Filling';
     return 'Available';
-  };
-
-  const handleBinClick = (bin: Bin) => {
-    setSelectedBin(bin);
-    setIsDialogOpen(true);
-  };
-
-  const handleToggleBin = async () => {
-    if (!selectedBin) return;
-
-    const newStatus = selectedBin.status === 'maintenance' ? 'available' : 'maintenance';
-    
-    try {
-      let finalStatus = newStatus;
-      if (newStatus === 'available' && selectedBin.currentCount >= selectedBin.capacity) {
-        finalStatus = 'full';
-      }
-
-      const { error } = await supabase
-        .from('bins')
-        .update({ status: finalStatus })
-        .eq('id', selectedBin.id);
-
-      if (error) {
-        console.error('Error updating bin status:', error);
-      }
-    } catch (error) {
-      console.error('Error toggling bin:', error);
-    }
-
-    setIsDialogOpen(false);
-    setSelectedBin(null);
   };
 
   const handleSwitchToggle = (bin: Bin, newEnabled: boolean) => {
@@ -118,23 +82,10 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
     const { bin, newEnabled } = pendingToggle;
     const newStatus = newEnabled ? 'available' : 'maintenance';
     
-    try {
-      let finalStatus = newStatus;
-      if (newStatus === 'available' && bin.currentCount >= bin.capacity) {
-        finalStatus = 'full';
-      }
-
-      const { error } = await supabase
-        .from('bins')
-        .update({ status: finalStatus })
-        .eq('id', bin.id);
-
-      if (error) {
-        console.error('Error updating bin status:', error);
-      }
-    } catch (error) {
-      console.error('Error toggling bin:', error);
-    }
+    // Update local state
+    setLocalBins(prev => prev.map(b => 
+      b.id === bin.id ? { ...b, status: newStatus as 'available' | 'full' | 'maintenance' } : b
+    ));
 
     setPendingToggle(null);
   };
@@ -144,11 +95,10 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
       <h3 className="text-sm font-semibold text-gray-800 mb-3">Bin Status Grid</h3>
       
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-        {bins.map(bin => (
+        {localBins.map(bin => (
           <div
             key={bin.id}
-            className={`p-2 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${getBinColor(bin)}`}
-            onClick={() => handleBinClick(bin)}
+            className={`p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${getBinColor(bin)}`}
           >
             <div className="flex flex-col items-center space-y-1">
               <Box className={`w-4 h-4 ${getBinTextColor(bin)}`} />
@@ -159,7 +109,7 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                   {bin.currentCount}/{bin.capacity}
                 </div>
                 <div className={`text-xs ${getBinTextColor(bin)}`}>
-                  {getStatusLabel(bin)}
+                  {getFillStatusLabel(bin)}
                 </div>
               </div>
               
@@ -177,7 +127,6 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
                 <Switch
                   checked={bin.status !== 'maintenance'}
                   onCheckedChange={(checked) => handleSwitchToggle(bin, checked)}
-                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </div>
@@ -199,27 +148,6 @@ const BinGrid: React.FC<BinGridProps> = ({ bins }) => {
           <span>Full</span>
         </div>
       </div>
-
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Toggle Bin Status</AlertDialogTitle>
-            <AlertDialogDescription>
-              {selectedBin && (
-                <>
-                  Are you sure you want to {selectedBin.status === 'maintenance' ? 'enable' : 'disable'} bin {selectedBin.location}?
-                  <br />
-                  This will change its status from <strong>{selectedBin.status === 'maintenance' ? 'disabled' : 'enabled'}</strong> to <strong>{selectedBin.status === 'maintenance' ? 'enabled' : 'disabled'}</strong>.
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedBin(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleToggleBin}>Confirm</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AlertDialog open={!!pendingToggle} onOpenChange={() => setPendingToggle(null)}>
         <AlertDialogContent>
