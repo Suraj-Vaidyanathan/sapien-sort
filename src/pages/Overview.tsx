@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useSupabaseRealtimeData } from '@/hooks/useSupabaseRealtimeData';
 import { useSystemControl } from '@/hooks/useSystemControl';
@@ -114,40 +115,13 @@ const Overview = () => {
     },
   };
 
-  // Transform robots data to match existing interface
-  const transformedRobots = robots.map(robot => ({
-    id: robot.id,
-    name: robot.name,
-    currentRow: robot.current_row,
-    status: robot.status as 'active' | 'idle' | 'charging' | 'error',
-    batteryLevel: robot.battery_level
-  }));
-
-  // Transform packages data
-  const transformedPackages = packages.map(pkg => ({
-    uid: pkg.uid,
-    botAssigned: pkg.bot_assigned,
-    destination: pkg.destination || 'Unknown',
-    status: pkg.status as 'processing' | 'completed' | 'pending',
-    timestamp: new Date(pkg.timestamp).toLocaleTimeString()
-  }));
-
-  // Transform bins data
-  const transformedBins = bins.map(bin => ({
-    id: bin.id,
-    location: bin.location,
-    capacity: bin.capacity,
-    currentCount: bin.current_count,
-    status: bin.status as 'available' | 'full' | 'maintenance'
-  }));
-
-  // Transform current package data
+  // Transform current package data - fix property names
   const transformedCurrentPackage = currentPackage ? {
-    packageId: currentPackage.uid,
+    packageId: currentPackage.packageId,
     destination: currentPackage.destination,
-    assignedBot: currentPackage.bot_assigned,
+    assignedBot: currentPackage.assignedBot,
     estimatedTime: '2m 30s', // Mock value
-    currentRow: transformedRobots.find(r => r.name === currentPackage.bot_assigned)?.currentRow || 0
+    currentRow: robots.find(r => r.name === currentPackage.assignedBot)?.currentRow || 0
   } : {
     packageId: null,
     destination: null,
@@ -201,13 +175,13 @@ const Overview = () => {
           <SystemOverviewCard {...systemOverview} />
           <InfeedOverviewCard {...infeedOverview} />
           <CurrentPackageCard {...transformedCurrentPackage} />
-          <BatteryStatusCard robots={transformedRobots} />
+          <BatteryStatusCard robots={robots} />
         </div>
 
         {/* Middle row - Robot Visualization and Switch Status */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-1 mb-1">
           <div className="xl:col-span-2">
-            <RobotVisualization robots={transformedRobots} totalRows={TOTAL_ROWS} />
+            <RobotVisualization robots={robots} totalRows={TOTAL_ROWS} />
           </div>
           <div className="xl:col-span-1">
             <SwitchStatusCard totalRows={TOTAL_ROWS} switches={mockSwitches} />
@@ -216,8 +190,8 @@ const Overview = () => {
 
         {/* Bottom row - Package Table and Bin Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-1">
-          <PackageTable packages={transformedPackages} />
-          <BinGrid bins={transformedBins} />
+          <PackageTable packages={packages} />
+          <BinGrid bins={bins} />
         </div>
       </div>
     </div>
