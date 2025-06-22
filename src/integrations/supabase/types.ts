@@ -9,161 +9,546 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      bins: {
+      bot_position_log: {
         Row: {
-          capacity: number
-          current_count: number
-          id: string
-          location: string
-          status: string
+          battery_level: number | null
+          bot_id: string | null
+          log_id: number
+          sector_id: number | null
+          speed: number | null
+          timestamp: string | null
         }
         Insert: {
-          capacity: number
-          current_count: number
-          id?: string
-          location: string
-          status: string
+          battery_level?: number | null
+          bot_id?: string | null
+          log_id?: number
+          sector_id?: number | null
+          speed?: number | null
+          timestamp?: string | null
         }
         Update: {
-          capacity?: number
-          current_count?: number
-          id?: string
-          location?: string
-          status?: string
+          battery_level?: number | null
+          bot_id?: string | null
+          log_id?: number
+          sector_id?: number | null
+          speed?: number | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_position_log_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["bot_id"]
+          },
+          {
+            foreignKeyName: "bot_position_log_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+        ]
+      }
+      bot_statuses: {
+        Row: {
+          description: string | null
+          status_id: number
+          status_name: string
+        }
+        Insert: {
+          description?: string | null
+          status_id?: number
+          status_name: string
+        }
+        Update: {
+          description?: string | null
+          status_id?: number
+          status_name?: string
         }
         Relationships: []
       }
-      chutes: {
+      bots: {
         Row: {
-          cv_status: string
-          id: number
-          label: string
-          speed: number
+          battery_level: number | null
+          bot_id: string
+          current_package_id: string | null
+          current_sector_id: number | null
+          current_speed: number | null
+          destination_sector_id: number | null
+          status_id: number | null
+          switch_route_id: number | null
         }
         Insert: {
-          cv_status: string
-          id?: number
-          label: string
-          speed: number
+          battery_level?: number | null
+          bot_id: string
+          current_package_id?: string | null
+          current_sector_id?: number | null
+          current_speed?: number | null
+          destination_sector_id?: number | null
+          status_id?: number | null
+          switch_route_id?: number | null
         }
         Update: {
-          cv_status?: string
-          id?: number
-          label?: string
-          speed?: number
+          battery_level?: number | null
+          bot_id?: string
+          current_package_id?: string | null
+          current_sector_id?: number | null
+          current_speed?: number | null
+          destination_sector_id?: number | null
+          status_id?: number | null
+          switch_route_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bots_current_sector_id_fkey"
+            columns: ["current_sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "bots_destination_sector_id_fkey"
+            columns: ["destination_sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "bots_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "bot_statuses"
+            referencedColumns: ["status_id"]
+          },
+          {
+            foreignKeyName: "bots_switch_route_id_fkey"
+            columns: ["switch_route_id"]
+            isOneToOne: false
+            referencedRelation: "switch_routes"
+            referencedColumns: ["route_id"]
+          },
+        ]
+      }
+      connection_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          type_id: number
+          type_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          type_id?: number
+          type_name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          type_id?: number
+          type_name?: string
         }
         Relationships: []
       }
-      cv_systems: {
+      movement_events_log: {
         Row: {
-          id: number
-          speed: number
-          status: string
-          system_type: string
+          bot_id: string | null
+          event_type: string | null
+          from_sector: number | null
+          log_id: number
+          package_id: string | null
+          timestamp: string | null
+          to_sector: number | null
         }
         Insert: {
-          id?: number
-          speed: number
-          status: string
-          system_type: string
+          bot_id?: string | null
+          event_type?: string | null
+          from_sector?: number | null
+          log_id?: number
+          package_id?: string | null
+          timestamp?: string | null
+          to_sector?: number | null
         }
         Update: {
-          id?: number
-          speed?: number
-          status?: string
-          system_type?: string
+          bot_id?: string | null
+          event_type?: string | null
+          from_sector?: number | null
+          log_id?: number
+          package_id?: string | null
+          timestamp?: string | null
+          to_sector?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movement_events_log_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["bot_id"]
+          },
+          {
+            foreignKeyName: "movement_events_log_from_sector_fkey"
+            columns: ["from_sector"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "movement_events_log_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["package_id"]
+          },
+          {
+            foreignKeyName: "movement_events_log_to_sector_fkey"
+            columns: ["to_sector"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+        ]
+      }
+      package_statuses: {
+        Row: {
+          description: string | null
+          status_id: number
+          status_name: string
+        }
+        Insert: {
+          description?: string | null
+          status_id?: number
+          status_name: string
+        }
+        Update: {
+          description?: string | null
+          status_id?: number
+          status_name?: string
         }
         Relationships: []
       }
       packages: {
         Row: {
-          bot_assigned: string | null
-          destination: string | null
-          id: string
-          status: string
-          timestamp: string
-          uid: string
+          assigned_at: string | null
+          assigned_bot_id: string | null
+          barcode: string | null
+          delivered_at: string | null
+          destination_sector: number | null
+          package_id: string
+          scanned_at: string | null
+          status_id: number | null
         }
         Insert: {
-          bot_assigned?: string | null
-          destination?: string | null
-          id?: string
-          status: string
-          timestamp?: string
-          uid: string
+          assigned_at?: string | null
+          assigned_bot_id?: string | null
+          barcode?: string | null
+          delivered_at?: string | null
+          destination_sector?: number | null
+          package_id: string
+          scanned_at?: string | null
+          status_id?: number | null
         }
         Update: {
-          bot_assigned?: string | null
-          destination?: string | null
-          id?: string
-          status?: string
-          timestamp?: string
-          uid?: string
-        }
-        Relationships: []
-      }
-      robots: {
-        Row: {
-          battery_level: number
-          current_row: number
-          id: string
-          name: string
-          status: string
-        }
-        Insert: {
-          battery_level: number
-          current_row: number
-          id?: string
-          name: string
-          status: string
-        }
-        Update: {
-          battery_level?: number
-          current_row?: number
-          id?: string
-          name?: string
-          status?: string
-        }
-        Relationships: []
-      }
-      switches: {
-        Row: {
-          chute_id: number
-          id: string
-          side: string
-          state: boolean
-        }
-        Insert: {
-          chute_id: number
-          id?: string
-          side: string
-          state: boolean
-        }
-        Update: {
-          chute_id?: number
-          id?: string
-          side?: string
-          state?: boolean
+          assigned_at?: string | null
+          assigned_bot_id?: string | null
+          barcode?: string | null
+          delivered_at?: string | null
+          destination_sector?: number | null
+          package_id?: string
+          scanned_at?: string | null
+          status_id?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "switches_chute_id_fkey"
-            columns: ["chute_id"]
+            foreignKeyName: "packages_assigned_bot_id_fkey"
+            columns: ["assigned_bot_id"]
             isOneToOne: false
-            referencedRelation: "chutes"
-            referencedColumns: ["id"]
+            referencedRelation: "bots"
+            referencedColumns: ["bot_id"]
+          },
+          {
+            foreignKeyName: "packages_destination_sector_fkey"
+            columns: ["destination_sector"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "packages_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "package_statuses"
+            referencedColumns: ["status_id"]
           },
         ]
+      }
+      parcel_tracking_log: {
+        Row: {
+          bot_id: string | null
+          event_type: string | null
+          location_sector: number | null
+          log_id: number
+          package_id: string | null
+          status: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          bot_id?: string | null
+          event_type?: string | null
+          location_sector?: number | null
+          log_id?: number
+          package_id?: string | null
+          status?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          bot_id?: string | null
+          event_type?: string | null
+          location_sector?: number | null
+          log_id?: number
+          package_id?: string | null
+          status?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_tracking_log_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["bot_id"]
+          },
+          {
+            foreignKeyName: "parcel_tracking_log_location_sector_fkey"
+            columns: ["location_sector"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "parcel_tracking_log_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["package_id"]
+          },
+        ]
+      }
+      sector_connections: {
+        Row: {
+          connected_to_sector_id: number | null
+          connection_id: number
+          connection_type_id: number | null
+          distance: number | null
+          sector_id: number | null
+        }
+        Insert: {
+          connected_to_sector_id?: number | null
+          connection_id?: number
+          connection_type_id?: number | null
+          distance?: number | null
+          sector_id?: number | null
+        }
+        Update: {
+          connected_to_sector_id?: number | null
+          connection_id?: number
+          connection_type_id?: number | null
+          distance?: number | null
+          sector_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_connections_connected_to_sector_id_fkey"
+            columns: ["connected_to_sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "sector_connections_connection_type_id_fkey"
+            columns: ["connection_type_id"]
+            isOneToOne: false
+            referencedRelation: "connection_types"
+            referencedColumns: ["type_id"]
+          },
+          {
+            foreignKeyName: "sector_connections_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+        ]
+      }
+      sector_types: {
+        Row: {
+          description: string | null
+          type_id: number
+          type_name: string
+        }
+        Insert: {
+          description?: string | null
+          type_id?: number
+          type_name: string
+        }
+        Update: {
+          description?: string | null
+          type_id?: number
+          type_name?: string
+        }
+        Relationships: []
+      }
+      sectors: {
+        Row: {
+          current_speed: number | null
+          max_speed: number | null
+          name: string | null
+          sector_id: number
+          sector_type_id: number | null
+        }
+        Insert: {
+          current_speed?: number | null
+          max_speed?: number | null
+          name?: string | null
+          sector_id: number
+          sector_type_id?: number | null
+        }
+        Update: {
+          current_speed?: number | null
+          max_speed?: number | null
+          name?: string | null
+          sector_id?: number
+          sector_type_id?: number | null
+        }
+        Relationships: []
+      }
+      switch_lookup_table: {
+        Row: {
+          destination_sector_id: number
+          switch_id: string
+          switch_position: string
+        }
+        Insert: {
+          destination_sector_id: number
+          switch_id: string
+          switch_position: string
+        }
+        Update: {
+          destination_sector_id?: number
+          switch_id?: string
+          switch_position?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_destination_sector"
+            columns: ["destination_sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+          {
+            foreignKeyName: "fk_switch"
+            columns: ["switch_id"]
+            isOneToOne: false
+            referencedRelation: "switches"
+            referencedColumns: ["switch_id"]
+          },
+        ]
+      }
+      switch_routes: {
+        Row: {
+          connection_id: number
+          route_id: number
+          switch_id: string
+          switch_position: string
+        }
+        Insert: {
+          connection_id: number
+          route_id?: number
+          switch_id: string
+          switch_position: string
+        }
+        Update: {
+          connection_id?: number
+          route_id?: number
+          switch_id?: string
+          switch_position?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "switch_routes_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "sector_connections"
+            referencedColumns: ["connection_id"]
+          },
+          {
+            foreignKeyName: "switch_routes_switch_id_fkey"
+            columns: ["switch_id"]
+            isOneToOne: false
+            referencedRelation: "switches"
+            referencedColumns: ["switch_id"]
+          },
+        ]
+      }
+      switches: {
+        Row: {
+          current_position: string | null
+          required_position: string | null
+          sector_id: number | null
+          switch_id: string
+        }
+        Insert: {
+          current_position?: string | null
+          required_position?: string | null
+          sector_id?: number | null
+          switch_id: string
+        }
+        Update: {
+          current_position?: string | null
+          required_position?: string | null
+          sector_id?: number | null
+          switch_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "switches_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["sector_id"]
+          },
+        ]
+      }
+      system_config: {
+        Row: {
+          config_key: string
+          config_value: string | null
+          description: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value?: string | null
+          description?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: string | null
+          description?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      create_random_package: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
