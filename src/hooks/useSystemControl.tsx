@@ -13,129 +13,179 @@ export const useSystemControl = () => {
     try {
       console.log('Running system simulation update...');
       
-      // Update robot positions and battery levels
-      const { data: robots } = await supabase.from('robots').select('*');
+      // Update robot positions and battery levels using the correct table name "bots"
+      const { data: bots } = await supabase.from('bots').select('*');
       
-      if (robots) {
-        for (const robot of robots) {
-          let newBatteryLevel = robot.battery_level;
-          let newStatus = robot.status;
-          let newRow = robot.current_row;
+      if (bots) {
+        for (const bot of bots) {
+          let newBatteryLevel = bot.battery_level || 0;
+          let newStatusId = bot.status_id;
+          let newSectorId = bot.current_sector_id || 0;
 
-          if (robot.status === 'active') {
+          // Get current status name to determine behavior
+          const { data: statusData } = await supabase
+            .from('bot_statuses')
+            .select('status_name')
+            .eq('status_id', bot.status_id)
+            .single();
+
+          const currentStatus = statusData?.status_name || 'idle';
+
+          if (currentStatus === 'active' || currentStatus === 'running') {
             // Drain battery for active robots
-            newBatteryLevel = Math.max(0, robot.battery_level - (Math.random() * 3 + 2));
+            newBatteryLevel = Math.max(0, newBatteryLevel - (Math.random() * 3 + 2));
             // Move robots around randomly
-            newRow = Math.floor(Math.random() * 5);
+            newSectorId = Math.floor(Math.random() * 5);
             
             // If battery is low, send to charging
             if (newBatteryLevel <= 15) {
-              newStatus = 'charging';
-              newRow = 4; // charging station
+              // Get charging status ID
+              const { data: chargingStatus } = await supabase
+                .from('bot_statuses')
+                .select('status_id')
+                .eq('status_name', 'charging')
+                .single();
               
-              // Unassign any packages if robot goes to charging
-              await supabase
-                .from('packages')
-                .update({ 
-                  bot_assigned: null,
-                  status: 'pending'
-                })
-                .eq('bot_assigned', robot.name)
-                .eq('status', 'processing');
+              if (chargingStatus) {
+                newStatusId = chargingStatus.status_id;
+                newSectorId = 4; // charging station
+                
+                // Unassign any packages if robot goes to charging
+                await supabase
+                  .from('packages')
+                  .update({ 
+                    assigned_bot_id: null,
+                    status_id: 1 // assuming 1 is pending status
+                  })
+                  .eq('assigned_bot_id', bot.bot_id);
+              }
             }
-          } else if (robot.status === 'charging') {
+          } else if (currentStatus === 'charging') {
             // Charge the battery
-            newBatteryLevel = Math.min(100, robot.battery_level + (Math.random() * 5 + 3));
-            newRow = 4; // keep at charging station
+            newBatteryLevel = Math.min(100, newBatteryLevel + (Math.random() * 5 + 3));
+            newSectorId = 4; // keep at charging station
             
             // If battery is full, make active again
             if (newBatteryLevel >= 95) {
-              newStatus = 'active';
+              // Get active status ID
+              const { data: activeStatus } = await supabase
+                .from('bot_statuses')
+                .select('status_id')
+                .ilike('status_name', '%active%')
+                .single();
+              
+              if (activeStatus) {
+                newStatusId = activeStatus.status_id;
+              }
             }
           }
 
           await supabase
-            .from('robots')
+            .from('bots')
             .update({
               battery_level: Math.round(newBatteryLevel),
-              status: newStatus,
-              current_row: newRow
+              status_id: newStatusId,
+              current_sector_id: newSectorId
             })
-            .eq('id', robot.id);
+            .eq('bot_id', bot.bot_id);
         }
       }
 
       // Assign pending packages to available robots
-      if (Math.random() > 0.3) { // Increased chance of assignment
-        const { data: pendingPackages } = await supabase
-          .from('packages')
-          .select('*')
-          .eq('status', 'pending')
-          .is('bot_assigned', null)
-          .limit(1);
+      if (Math.random() > 0.3) {
+        // Get pending status ID
+        const { data: pendingStatus } = await supabase
+          .from('package_statuses')
+          .select('status_id')
+          .eq('status_name', 'pending')
+          .single();
 
-        const { data: availableRobots } = await supabase
-          .from('robots')
-          .select('*')
-          .eq('status', 'active')
-          .gt('battery_level', 20);
-
-        if (pendingPackages && pendingPackages.length > 0 && availableRobots && availableRobots.length > 0) {
-          const randomBot = availableRobots[Math.floor(Math.random() * availableRobots.length)];
-          console.log(`Assigning package ${pendingPackages[0].uid} to robot ${randomBot.name}`);
-          
-          await supabase
+        if (pendingStatus) {
+          const { data: pendingPackages } = await supabase
             .from('packages')
-            .update({
-              bot_assigned: randomBot.name,
-              status: 'processing'
-            })
-            .eq('id', pendingPackages[0].id);
+            .select('*')
+            .eq('status_id', pendingStatus.status_id)
+            .is('assigned_bot_id', null)
+            .limit(1);
+
+          // Get active bot status IDs
+          const { data: activeStatuses } = await supabase
+            .from('bot_statuses')
+            .select('status_id')
+            .or('status_name.ilike.%active%,status_name.ilike.%running%');
+
+          if (activeStatuses && activeStatuses.length > 0) {
+            const activeStatusIds = activeStatuses.map(s => s.status_id);
+            
+            const { data: availableBots } = await supabase
+              .from('bots')
+              .select('*')
+              .in('status_id', activeStatusIds)
+              .gt('battery_level', 20);
+
+            if (pendingPackages && pendingPackages.length > 0 && availableBots && availableBots.length > 0) {
+              const randomBot = availableBots[Math.floor(Math.random() * availableBots.length)];
+              console.log(`Assigning package ${pendingPackages[0].package_id} to robot ${randomBot.bot_id}`);
+              
+              // Get processing status ID
+              const { data: processingStatus } = await supabase
+                .from('package_statuses')
+                .select('status_id')
+                .eq('status_name', 'processing')
+                .single();
+
+              if (processingStatus) {
+                await supabase
+                  .from('packages')
+                  .update({
+                    assigned_bot_id: randomBot.bot_id,
+                    status_id: processingStatus.status_id,
+                    assigned_at: new Date().toISOString()
+                  })
+                  .eq('package_id', pendingPackages[0].package_id);
+              }
+            }
+          }
         }
       }
 
       // Complete packages randomly
-      if (Math.random() > 0.5) { // Increased completion rate
-        const { data: processingPackages } = await supabase
-          .from('packages')
-          .select('*')
-          .eq('status', 'processing')
-          .limit(1);
+      if (Math.random() > 0.5) {
+        // Get processing status ID
+        const { data: processingStatus } = await supabase
+          .from('package_statuses')
+          .select('status_id')
+          .eq('status_name', 'processing')
+          .single();
 
-        if (processingPackages && processingPackages.length > 0) {
-          console.log(`Completing package ${processingPackages[0].uid}`);
-          
-          await supabase
+        if (processingStatus) {
+          const { data: processingPackages } = await supabase
             .from('packages')
-            .update({ 
-              status: 'completed',
-              bot_assigned: null
-            })
-            .eq('id', processingPackages[0].id);
-        }
-      }
+            .select('*')
+            .eq('status_id', processingStatus.status_id)
+            .limit(1);
 
-      // Update bin counts occasionally
-      if (Math.random() > 0.8) {
-        const { data: bins } = await supabase.from('bins').select('*');
-        if (bins) {
-          const randomBin = bins[Math.floor(Math.random() * bins.length)];
-          const change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
-          const newCount = Math.max(0, Math.min(randomBin.capacity, randomBin.current_count + change));
-          
-          // Only update status if bin is not in maintenance
-          let newStatus = randomBin.status;
-          if (randomBin.status !== 'maintenance') {
-            newStatus = newCount >= randomBin.capacity ? 'full' : 'available';
+          if (processingPackages && processingPackages.length > 0) {
+            console.log(`Completing package ${processingPackages[0].package_id}`);
+            
+            // Get completed status ID
+            const { data: completedStatus } = await supabase
+              .from('package_statuses')
+              .select('status_id')
+              .eq('status_name', 'completed')
+              .single();
+
+            if (completedStatus) {
+              await supabase
+                .from('packages')
+                .update({ 
+                  status_id: completedStatus.status_id,
+                  assigned_bot_id: null,
+                  delivered_at: new Date().toISOString()
+                })
+                .eq('package_id', processingPackages[0].package_id);
+            }
           }
-          
-          await supabase
-            .from('bins')
-            .update({ 
-              current_count: newCount,
-              status: newStatus
-            })
-            .eq('id', randomBin.id);
         }
       }
 
@@ -147,11 +197,43 @@ export const useSystemControl = () => {
   const generateNewPackage = async () => {
     try {
       console.log('Generating new package...');
-      const { error } = await supabase.rpc('create_random_package');
-      if (error) {
-        console.error('Error creating package:', error);
-      } else {
-        console.log('New package created successfully');
+      
+      // Generate a random package ID
+      const packageId = `PKG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      // Get pending status ID
+      const { data: pendingStatus } = await supabase
+        .from('package_statuses')
+        .select('status_id')
+        .eq('status_name', 'pending')
+        .single();
+
+      // Get random destination sector
+      const { data: sectors } = await supabase
+        .from('sectors')
+        .select('sector_id')
+        .limit(5);
+
+      const randomSector = sectors && sectors.length > 0 
+        ? sectors[Math.floor(Math.random() * sectors.length)].sector_id 
+        : 1;
+
+      if (pendingStatus) {
+        const { error } = await supabase
+          .from('packages')
+          .insert({
+            package_id: packageId,
+            status_id: pendingStatus.status_id,
+            destination_sector: randomSector,
+            scanned_at: new Date().toISOString(),
+            barcode: `BC-${packageId}`
+          });
+
+        if (error) {
+          console.error('Error creating package:', error);
+        } else {
+          console.log('New package created successfully');
+        }
       }
     } catch (error) {
       console.error('Error generating package:', error);
@@ -171,13 +253,28 @@ export const useSystemControl = () => {
     }
     
     try {
-      // Reactivate all idle robots (those that were stopped by emergency stop)
-      await supabase
-        .from('robots')
-        .update({ status: 'active' })
-        .eq('status', 'idle');
-      
-      console.log('Reactivated idle robots');
+      // Get idle status ID
+      const { data: idleStatus } = await supabase
+        .from('bot_statuses')
+        .select('status_id')
+        .eq('status_name', 'idle')
+        .single();
+
+      // Get active status ID
+      const { data: activeStatus } = await supabase
+        .from('bot_statuses')
+        .select('status_id')
+        .ilike('status_name', '%active%')
+        .single();
+
+      if (idleStatus && activeStatus) {
+        await supabase
+          .from('bots')
+          .update({ status_id: activeStatus.status_id })
+          .eq('status_id', idleStatus.status_id);
+        
+        console.log('Reactivated idle robots');
+      }
     } catch (error) {
       console.error('Error reactivating robots:', error);
     }
@@ -223,20 +320,49 @@ export const useSystemControl = () => {
     }
 
     try {
-      // Stop all robots (except those charging)
-      await supabase
-        .from('robots')
-        .update({ status: 'idle' })
-        .neq('status', 'charging');
+      // Get status IDs
+      const { data: chargingStatus } = await supabase
+        .from('bot_statuses')
+        .select('status_id')
+        .eq('status_name', 'charging')
+        .single();
 
-      // Unassign all processing packages
-      await supabase
-        .from('packages')
-        .update({ 
-          bot_assigned: null,
-          status: 'pending'
-        })
-        .eq('status', 'processing');
+      const { data: idleStatus } = await supabase
+        .from('bot_statuses')
+        .select('status_id')
+        .eq('status_name', 'idle')
+        .single();
+
+      const { data: pendingStatus } = await supabase
+        .from('package_statuses')
+        .select('status_id')
+        .eq('status_name', 'pending')
+        .single();
+
+      const { data: processingStatus } = await supabase
+        .from('package_statuses')
+        .select('status_id')
+        .eq('status_name', 'processing')
+        .single();
+
+      if (chargingStatus && idleStatus) {
+        // Stop all robots (except those charging)
+        await supabase
+          .from('bots')
+          .update({ status_id: idleStatus.status_id })
+          .neq('status_id', chargingStatus.status_id);
+      }
+
+      if (pendingStatus && processingStatus) {
+        // Unassign all processing packages
+        await supabase
+          .from('packages')
+          .update({ 
+            assigned_bot_id: null,
+            status_id: pendingStatus.status_id
+          })
+          .eq('status_id', processingStatus.status_id);
+      }
 
       console.log('Emergency stop completed - all operations halted');
     } catch (error) {
