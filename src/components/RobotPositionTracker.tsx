@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Bot } from 'lucide-react';
+import { console } from 'inspector';
 
 interface Robot {
   id: string;
@@ -30,8 +31,18 @@ const RobotPositionTracker: React.FC<RobotPositionTrackerProps> = ({ robots, tot
     }
   };
 
+  const getRowFromSector = (sector: number) => {
+    if (sector < 10) return 0;
+    if (sector >= 10 && sector <= 20) return 1;
+    if (sector >= 21 && sector <= 26) return 0;
+    if (sector >= 27 && sector <= 41) return 2;
+    if (sector >= 42 && sector <= 54) return 3;
+    if (sector >= 55) return 4;
+    return 2;
+  };
+
   const getRobotsInRow = (rowIndex: number) => {
-    return robots.filter(robot => robot.currentRow === rowIndex);
+    return robots.filter(robot => getRowFromSector(robot.currentRow) === rowIndex);
   };
 
   return (
