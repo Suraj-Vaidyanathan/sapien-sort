@@ -16,7 +16,7 @@ interface BatteryManagementProps {
 
 const BatteryManagement: React.FC<BatteryManagementProps> = ({ robots }) => {
   const getBatteryIcon = (level: number, status: string) => {
-    if (status === 'charging') return BatteryCharging;
+    if (status === 'charging' && level < 100) return BatteryCharging;
     if (level <= 20) return BatteryLow;
     return Battery;
   };
