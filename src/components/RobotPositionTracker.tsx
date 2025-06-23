@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Bot } from 'lucide-react';
@@ -40,7 +39,7 @@ const RobotPositionTracker: React.FC<RobotPositionTrackerProps> = ({ robots, tot
       <h3 className="text-sm font-semibold text-gray-800 mb-2">Robot Positions</h3>
       
       <div className="space-y-1 flex-1">
-        {Array.from({ length: totalRows }, (_, rowIndex) => {
+        {Array.from({ length: totalRows }, (_, rowIndex) => totalRows - 1 - rowIndex).map(rowIndex => {
           const robotsInRow = getRobotsInRow(rowIndex);
           
           return (
